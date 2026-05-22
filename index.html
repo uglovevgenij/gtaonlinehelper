@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GTA Online — Таймеры производств</title>
     <!-- Favicon: песочные часы в стиле GTA -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='15' fill='%23151515'/%3E%3Crect x='15' y='10' width='70' height='12' rx='3' fill='%23ffb300'/%3E%3Crect x='15' y='78' width='70' height='12' rx='3' fill='%23ffb300'/%3E%3Cpath d='M30 22 L70 22 L55 50 L70 78 L30 78 L45 50 Z' fill='%23ffb300'/%3E%3Ccircle cx='50' cy='50' r='14' fill='%23151515'/%3E%3C/svg%3E">
@@ -75,7 +75,6 @@
             user-select: none; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             position: relative; 
-            touch-action: none; /* для мобильного перетаскивания */
         }
         .card:active { cursor: grabbing; }
         .card:hover { background: var(--bg-card-hover); border-color: #333; }
@@ -84,8 +83,6 @@
         .card.dragging { 
             opacity: 0.5; 
             border: 2px dashed var(--gta-yellow); 
-            cursor: grabbing;
-            z-index: 1000;
         }
 
         .card.drag-left {
@@ -479,7 +476,7 @@
                     <li><span>▶ Старт / ⏸ Пауза / ↺ Сброс</span> — иконки внизу карточки.</li>
                     <li><span>⋮ Меню карточки</span> — все настройки: название, комментарий, время, цвет, удаление.</li>
                     <li><span>🎨 Палитра цветов</span> — 10 цветов среднего тона.</li>
-                    <li><span>🖱 Перетаскивание</span> — левая половина → вставка слева, правая → справа. Работает как на ПК, так и на мобильных устройствах.</li>
+                    <li><span>🖱 Перетаскивание</span> — левая половина → вставка слева, правая → справа.</li>
                     <li><span>😀 Эмодзи</span> — кликните на иконку слева от названия, чтобы выбрать другой из 25 вариантов.</li>
                 </ul>
                 <h3>⚡ Глобальные кнопки</h3>
@@ -526,7 +523,7 @@
         
         // История версий
         var changelog = [
-            { version: "0.1.6 beta", date: "2025-05-22", changes: ["🐛 Исправлено мерцание и скачки зелёной полоски при перетаскивании в многострочной сетке.", "📱 Улучшена логика определения целевой позиции для вставки (горизонталь + вертикаль)."] },
+            { version: "0.1.6 beta", date: "2025-05-22", changes: ["🐛 Исправлено мерцание и скачки зелёной полоски при перетаскивании в многострочной сетке.", "📏 Улучшена логика определения целевой позиции для вставки (горизонталь + вертикаль)."] },
             { version: "0.1.5 beta", date: "2025-05-22", changes: ["🐙 Кнопка «Check updates» переименована в «GitHub» с эмодзи осьминога.", "🖼️ Добавлена иконка вкладки (favicon) — стилизованные песочные часы в стиле GTA."] },
             { version: "0.1.4 beta", date: "2025-05-22", changes: ["😀 Добавлена возможность менять эмодзи у таймеров (клик на иконку слева от названия).", "🎨 Палитра из 25 эмодзи на выбор. Выбор сохраняется в настройках."] },
             { version: "0.1.3 beta", date: "2025-05-22", changes: ["🔤 Шрифт заголовков и кнопок заменён на PT Sans для лучшей поддержки кириллицы."] },
@@ -620,13 +617,6 @@
         var currentDropTarget = null;
         var currentDropSide = null;
         var activeEmojiPicker = null;
-        
-        // Переменные для мобильного touch drag
-        var touchDragActive = false;
-        var touchStartX = 0, touchStartY = 0;
-        var touchDragCard = null;
-        var touchPlaceholder = null;
-        var touchLastTarget = null;
 
         function toggleModal() { document.getElementById('modalOverlay').classList.toggle('active'); }
         function handleOverlayClick(e) { if(e.target === e.currentTarget) toggleModal(); }
@@ -838,7 +828,6 @@
             grid.parentNode.replaceChild(newGrid, grid);
             grid = newGrid;
 
-            // Drag & Drop для мыши
             grid.addEventListener('dragstart', function(e) {
                 var card = e.target.closest('.card');
                 if (!card) return;
@@ -881,92 +870,6 @@
             });
             grid.addEventListener('dragenter', function(e) { e.preventDefault(); });
             grid.addEventListener('dragexit', function(e) { e.preventDefault(); });
-            
-            // Touch Drag для мобильных устройств (с использованием улучшенной логики)
-            function createTouchPlaceholder() {
-                var ph = document.createElement('div');
-                ph.className = 'card placeholder';
-                ph.style.cssText = 'background: rgba(255,179,0,0.1); border: 2px dashed var(--gta-yellow); opacity: 0.6; min-height: 140px; flex: 0 0 300px; max-width: 300px; margin: 0; cursor: grabbing;';
-                return ph;
-            }
-            
-            function getTouchDropTarget(container, x, y) {
-                return getDropTargetAndSide(container, x, y);
-            }
-            
-            function onTouchStart(e) {
-                var card = e.target.closest('.card');
-                if (!card) return;
-                if (e.target.closest('.btn-icon') || e.target.closest('.btn-kebab') || e.target.closest('.color-swatch') || e.target.closest('.emoji-option')) return;
-                e.preventDefault();
-                touchDragCard = card;
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-                touchDragActive = true;
-                touchPlaceholder = createTouchPlaceholder();
-                card.parentNode.insertBefore(touchPlaceholder, card.nextSibling);
-                card.classList.add('dragging');
-                touchLastTarget = null;
-            }
-            
-            function onTouchMove(e) {
-                if (!touchDragActive || !touchDragCard || !touchPlaceholder) return;
-                e.preventDefault();
-                var x = e.touches[0].clientX;
-                var y = e.touches[0].clientY;
-                var dropInfo = getTouchDropTarget(grid, x, y);
-                if (dropInfo && dropInfo.target !== touchDragCard) {
-                    var targetKey = dropInfo.target.id + '_' + dropInfo.side;
-                    if (touchLastTarget !== targetKey) {
-                        if (dropInfo.side === 'left') {
-                            grid.insertBefore(touchPlaceholder, dropInfo.target);
-                        } else {
-                            grid.insertBefore(touchPlaceholder, dropInfo.target.nextSibling);
-                        }
-                        touchLastTarget = targetKey;
-                    }
-                }
-            }
-            
-            function onTouchEnd(e) {
-                if (!touchDragActive || !touchDragCard || !touchPlaceholder) {
-                    touchDragActive = false;
-                    touchDragCard = null;
-                    if (touchPlaceholder) touchPlaceholder.remove();
-                    touchPlaceholder = null;
-                    return;
-                }
-                e.preventDefault();
-                if (touchPlaceholder && touchPlaceholder.parentNode === grid) {
-                    grid.insertBefore(touchDragCard, touchPlaceholder);
-                } else {
-                    grid.appendChild(touchDragCard);
-                }
-                if (touchPlaceholder) touchPlaceholder.remove();
-                touchPlaceholder = null;
-                touchDragCard.classList.remove('dragging');
-                touchDragCard = null;
-                touchDragActive = false;
-                saveCardTitles();
-                showNotification('📦 Порядок таймеров обновлён', 'info');
-            }
-            
-            function onTouchCancel(e) {
-                if (touchPlaceholder) {
-                    touchPlaceholder.remove();
-                    touchPlaceholder = null;
-                }
-                if (touchDragCard) {
-                    touchDragCard.classList.remove('dragging');
-                    touchDragCard = null;
-                }
-                touchDragActive = false;
-            }
-            
-            grid.addEventListener('touchstart', onTouchStart, { passive: false });
-            grid.addEventListener('touchmove', onTouchMove, { passive: false });
-            grid.addEventListener('touchend', onTouchEnd);
-            grid.addEventListener('touchcancel', onTouchCancel);
         }
 
         function deleteTimer(id) {
