@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GTA Online — Таймеры производств</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Rajdhani:wght@500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&family=PT+Sans:wght@400;700;800&display=swap');
         
         :root {
             --bg-dark: #0b0b0b; --bg-card: #151515; --bg-card-hover: #1c1c1c;
@@ -13,7 +13,7 @@
             --gta-green: #4caf50; --gta-red: #f44336; --gta-blue: #2196f3;
             --gta-purple: #ba68c8; --gta-orange: #ff9800;
             --border-color: #2a2a2a; --text-primary: #e0e0e0; --text-secondary: #808080;
-            --font-header: 'Bebas Neue', sans-serif;
+            --font-header: 'PT Sans', sans-serif;
             --font-ui: 'Rajdhani', sans-serif;
             --font-timer: 'Share Tech Mono', monospace;
         }
@@ -25,7 +25,7 @@
                               repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 3px);
         }
         .header { text-align: center; padding: 6px 0 10px; flex-shrink: 0; border-bottom: 2px solid var(--gta-yellow); margin-bottom: 8px; }
-        .header h1 { font-size: 2.4em; font-weight: 400; letter-spacing: 3px; color: var(--gta-yellow); text-transform: uppercase; font-family: var(--font-header); text-shadow: 0 2px 6px rgba(0,0,0,0.8), 0 0 15px rgba(255,179,0,0.2); line-height: 1; margin-bottom: 2px; }
+        .header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: 3px; color: var(--gta-yellow); text-transform: uppercase; font-family: var(--font-header); text-shadow: 0 2px 6px rgba(0,0,0,0.8), 0 0 15px rgba(255,179,0,0.2); line-height: 1; margin-bottom: 2px; }
         .header p { font-size: 1.1em; color: var(--text-secondary); margin-top: 2px; letter-spacing: 2px; text-transform: uppercase; font-family: var(--font-ui); }
         
         .main-controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; flex-shrink: 0; }
@@ -34,7 +34,7 @@
             font-size: 1.3em; font-weight: 700; cursor: pointer; border: 2px solid transparent; 
             transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; 
             gap: 6px; min-height: 44px; text-transform: uppercase; letter-spacing: 1px; 
-            white-space: nowrap; font-family: var(--font-ui);
+            white-space: nowrap; font-family: var(--font-header);
         }
         .btn-play-all { background: rgba(76,175,80,0.15); color: var(--gta-green); border-color: rgba(76,175,80,0.4); }
         .btn-play-all:hover { background: rgba(76,175,80,0.25); box-shadow: 0 0 12px rgba(76,175,80,0.3); }
@@ -44,7 +44,7 @@
         .custom-form { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; flex-shrink: 0; flex-wrap: wrap; }
         .custom-form input { background: #000; border: 1px solid var(--border-color); color: var(--text-primary); padding: 7px 10px; border-radius: 4px; font-size: 1.1em; width: 130px; outline: none; transition: border 0.2s; font-family: var(--font-ui); }
         .custom-form input:focus { border-color: var(--gta-yellow); }
-        .btn-add { background: rgba(255,179,0,0.15); color: var(--gta-yellow); border: 1px solid rgba(255,179,0,0.4); padding: 7px 14px; border-radius: 4px; font-size: 1.1em; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: var(--font-ui); text-transform: uppercase; }
+        .btn-add { background: rgba(255,179,0,0.15); color: var(--gta-yellow); border: 1px solid rgba(255,179,0,0.4); padding: 7px 14px; border-radius: 4px; font-size: 1.1em; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: var(--font-header); text-transform: uppercase; letter-spacing: 1px; }
         .btn-add:hover { background: rgba(255,179,0,0.25); }
 
         .grid { 
@@ -63,20 +63,77 @@
             border-top: 3px solid var(--gta-yellow); 
             border-radius: 4px; 
             padding: 10px; 
-            transition: background 0.2s; 
+            transition: background 0.2s, opacity 0.2s, border 0.2s; 
             display: flex; 
             flex-direction: column; 
             flex: 0 0 300px; 
             max-width: 300px;
-            min-height: 140px; 
+            min-height: 260px;
+            cursor: grab; 
+            user-select: none; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             position: relative; 
         }
+        .card:active { cursor: grabbing; }
         .card:hover { background: var(--bg-card-hover); border-color: #333; }
         .card.custom { border-color: rgba(33,150,243,0.3); }
         
+        .card.dragging { 
+            opacity: 0.5; 
+            border: 2px dashed var(--gta-yellow); 
+        }
+
+        .card.drag-left {
+            position: relative;
+        }
+        .card.drag-left::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--gta-green);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--gta-green);
+            pointer-events: none;
+            z-index: 10;
+        }
+        .card.drag-right {
+            position: relative;
+        }
+        .card.drag-right::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--gta-green);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--gta-green);
+            pointer-events: none;
+            z-index: 10;
+        }
+        
         .card-header { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 4px; min-height: 28px; }
-        .card-icon { width: 28px; height: 28px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 1em; flex-shrink: 0; background: rgba(255,255,255,0.05); }
+        .card-icon { 
+            width: 28px; 
+            height: 28px; 
+            border-radius: 3px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.2em; 
+            flex-shrink: 0; 
+            background: rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .card-icon:hover {
+            background: rgba(255,179,0,0.2);
+            transform: scale(1.05);
+        }
         .acid .card-icon { color: var(--gta-green); }
         .nightclub .card-icon { color: var(--gta-purple); }
         .cargo .card-icon { color: var(--gta-orange); }
@@ -85,7 +142,24 @@
         .custom .card-icon { color: var(--gta-blue); }
 
         .card-title-wrap { flex: 1; min-width: 0; display: flex; align-items: flex-start; gap: 4px; }
-        .card-title { font-size: 1.2em; font-weight: 700; letter-spacing: 1px; white-space: normal; word-break: break-word; line-height: 1.05; flex: 1; text-transform: uppercase; font-family: var(--font-header); color: var(--gta-yellow); text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+        .card-title { 
+            font-size: 1.2em; 
+            font-weight: 800; 
+            letter-spacing: 1px; 
+            word-break: break-word; 
+            line-height: 1.2; 
+            flex: 1; 
+            text-transform: uppercase; 
+            font-family: var(--font-header); 
+            color: var(--gta-yellow); 
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.4em;
+        }
         
         .card-actions-wrap { position: relative; }
         .btn-kebab { background: none; border: 1px solid transparent; color: var(--text-secondary); cursor: pointer; font-size: 1.3em; padding: 2px 6px; border-radius: 4px; transition: all 0.2s; line-height: 1; letter-spacing: 1px; }
@@ -125,12 +199,57 @@
         .color-swatch:hover { transform: scale(1.15); border-color: #fff; }
         .color-swatch.active { border-color: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.5); }
 
-        .timer-block { margin-top: 4px; }
-        .sub-title { font-size: 0.9em; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
-        .sub-text { flex: 1; white-space: normal; word-break: break-word; }
-        .btn-edit-sub { background: none; border: none; color: #444; cursor: pointer; font-size: 0.9em; padding: 0 2px; transition: color 0.2s; flex-shrink: 0; }
-        .btn-edit-sub:hover { color: var(--gta-yellow); }
+        /* Выпадающая палитра эмодзи */
+        .emoji-picker {
+            position: fixed;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            z-index: 300;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+            animation: fadeIn 0.15s;
+        }
+        .emoji-option {
+            font-size: 1.4em;
+            cursor: pointer;
+            padding: 6px;
+            text-align: center;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .emoji-option:hover {
+            background: rgba(255,179,0,0.3);
+            transform: scale(1.1);
+        }
 
+        .timer-block { margin-top: 4px; }
+        .sub-title { 
+            font-size: 0.9em; 
+            color: var(--text-secondary); 
+            margin-bottom: 4px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px;
+            min-height: 2.2em;
+        }
+        .sub-text { 
+            flex: 1; 
+            white-space: normal; 
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
         .timer-display { text-align: center; padding: 6px; background: #0a0a0a; border: 1px solid #222; border-radius: 3px; margin-bottom: 5px; }
         .timer-value { font-size: 1.7em; font-weight: 700; font-family: var(--font-timer); letter-spacing: 1px; transition: color 0.3s; line-height: 1.1; }
         .timer-value.running { color: var(--gta-green); }
@@ -154,18 +273,82 @@
         .progress-bar.cyan { background: var(--gta-blue); }
         .progress-bar.gold { background: var(--gta-yellow); }
 
-        .btn-group { display: flex; flex-direction: column; gap: 4px; margin-top: auto; }
-        .btn { padding: 6px 4px; border: 1px solid #222; border-radius: 3px; font-size: 0.9em; font-weight: 600; cursor: pointer; transition: all 0.15s; text-align: center; background: rgba(0,0,0,0.3); color: var(--text-secondary); min-height: 32px; display: flex; align-items: center; justify-content: center; font-family: var(--font-ui); text-transform: uppercase; }
-        .btn:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); border-color: #444; }
-        .btn-start { border-color: rgba(76,175,80,0.4); color: var(--gta-green); }
-        .btn-pause { border-color: rgba(255,152,0,0.4); color: var(--gta-orange); }
-        .btn-reset { border-color: rgba(244,67,54,0.4); color: var(--gta-red); }
+        .btn-group-horizontal {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+            justify-content: stretch;
+        }
+        .btn-icon {
+            flex: 1;
+            padding: 8px 4px;
+            border: 1px solid #222;
+            border-radius: 4px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+            background: rgba(0,0,0,0.3);
+            color: var(--text-secondary);
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-ui);
+        }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); border-color: #444; }
+        .btn-start-icon { border-color: rgba(76,175,80,0.4); color: var(--gta-green); }
+        .btn-pause-icon { border-color: rgba(255,152,0,0.4); color: var(--gta-orange); }
+        .btn-reset-icon { border-color: rgba(244,67,54,0.4); color: var(--gta-red); }
 
         .admin-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 10px auto 20px; max-width: 800px; flex-shrink: 0; }
-        .btn-admin { padding: 6px 10px; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; background: rgba(25,25,25,0.9); color: #666; font-size: 0.85em; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: var(--font-ui); text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; }
+        .btn-admin { padding: 6px 10px; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; background: rgba(25,25,25,0.9); color: #666; font-size: 0.85em; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: var(--font-header); text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; }
         .btn-admin:hover { opacity: 1; color: var(--text-secondary); background: rgba(40,40,40,0.9); border-color: #444; }
+        
+        .btn-reset-settings { 
+            background: rgba(244,67,54,0.15); 
+            color: var(--gta-red); 
+            border-color: rgba(244,67,54,0.4);
+        }
+        .btn-reset-settings:hover { 
+            background: rgba(244,67,54,0.25); 
+            box-shadow: 0 0 12px rgba(244,67,54,0.3);
+        }
 
-        .version-label { text-align: center; font-size: 0.7em; color: #444; font-family: var(--font-ui); letter-spacing: 1px; margin-bottom: 16px; text-transform: uppercase; flex-shrink: 0; }
+        .version-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+        .version-label { 
+            font-size: 0.7em; 
+            color: #666; 
+            font-family: var(--font-header); 
+            letter-spacing: 1px; 
+            text-transform: uppercase; 
+            cursor: pointer; 
+            transition: color 0.2s;
+            font-weight: 600;
+        }
+        .version-label:hover { color: var(--gta-yellow); text-decoration: underline; }
+        .update-link {
+            font-size: 0.7em;
+            color: #666;
+            font-family: var(--font-header);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: color 0.2s;
+            font-weight: 600;
+        }
+        .update-link:hover {
+            color: var(--gta-yellow);
+            text-decoration: underline;
+        }
 
         .floating-buttons { position: fixed; bottom: 16px; right: 16px; display: flex; flex-direction: column-reverse; gap: 10px; z-index: 100; align-items: center; }
         .icon-btn { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #222; color: white; font-size: 1.4em; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-family: var(--font-ui); font-weight: bold; }
@@ -187,20 +370,26 @@
         .modal-overlay.active { opacity: 1; pointer-events: all; }
         .modal-box { background: var(--bg-card); border: 2px solid var(--gta-yellow); border-radius: 6px; padding: 24px; max-width: 460px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 0 30px rgba(255,179,0,0.15); transform: scale(0.95); transition: transform 0.3s; }
         .modal-overlay.active .modal-box { transform: scale(1); }
-        .modal-title { font-family: var(--font-header); font-size: 2.2em; color: var(--gta-yellow); margin-bottom: 16px; text-shadow: 0 2px 4px rgba(0,0,0,0.7); border-bottom: 1px solid #333; padding-bottom: 8px; letter-spacing: 2px; }
+        .modal-title { font-family: var(--font-header); font-size: 2.2em; font-weight: 800; color: var(--gta-yellow); margin-bottom: 16px; text-shadow: 0 2px 4px rgba(0,0,0,0.7); border-bottom: 1px solid #333; padding-bottom: 8px; letter-spacing: 2px; }
         .modal-text { font-family: var(--font-ui); font-size: 1em; color: #ccc; line-height: 1.5; }
-        .modal-text h3 { color: var(--gta-green); margin: 14px 0 6px; font-size: 1.2em; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+        .modal-text h3 { color: var(--gta-green); margin: 14px 0 6px; font-size: 1.2em; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; border-bottom: 1px solid #222; padding-bottom: 4px; font-family: var(--font-header); }
         .modal-text ul { padding-left: 20px; margin: 4px 0; }
         .modal-text li { margin-bottom: 4px; }
         .modal-text li span { color: var(--gta-yellow); font-weight: 700; font-family: var(--font-header); font-size: 1.1em; letter-spacing: 0.5px; }
         .modal-close { margin-top: 20px; width: 100%; padding: 12px; background: var(--gta-red); color: #fff; border: none; border-radius: 4px; font-size: 1.3em; font-weight: 700; cursor: pointer; text-transform: uppercase; font-family: var(--font-header); letter-spacing: 2px; transition: background 0.2s; }
         .modal-close:hover { background: #c62828; }
+        .changelog-entry { margin-bottom: 16px; border-left: 2px solid var(--gta-yellow); padding-left: 12px; }
+        .changelog-version { font-weight: bold; color: var(--gta-yellow); font-size: 1.1em; font-family: var(--font-header); }
+        .changelog-date { font-size: 0.8em; color: #888; margin-left: 8px; }
+        .changelog-list { margin-top: 6px; padding-left: 20px; }
+        .changelog-list li { margin-bottom: 4px; }
 
         @media (max-width: 600px) {
             .main-controls { flex-direction: column; align-items: stretch; }
             .btn-main { max-width: 100%; }
             .admin-controls { flex-direction: column; align-items: stretch; max-width: 100%; }
             .card { flex: 0 0 100%; max-width: 100%; }
+            .version-wrapper { flex-wrap: wrap; gap: 8px; }
         }
     </style>
 </head>
@@ -208,7 +397,7 @@
 
     <div class="header">
         <h1>GTA ONLINE TIMERS</h1>
-        <p>Виталька, от пизды деталька</p>
+        <p>“Ah shit, here we go again”— Omar Khayyam</p>
     </div>
 
     <div class="main-controls">
@@ -223,201 +412,52 @@
     </div>
 
     <template id="default-layout">
-        <div class="card acid" id="card-acid-full" data-title="Кислотная лаборатория ①" data-desc="Полная закупка сырья" data-color="#ffb300">
-            <div class="card-header"><div class="card-icon">🧪</div>
-                <div class="card-title-wrap"><div class="card-title">Кислотная лаборатория ①</div></div>
-                <div class="card-actions-wrap">
-                    <button class="btn-kebab" onclick="toggleMenu('acid-full')">⋮</button>
-                    <div class="dropdown-menu" id="menu-acid-full">
-                        <button onclick="renameCard('acid-full')">✏️ Изменить название</button>
-                        <button onclick="editSubTitle('acid-full')">📝 Изменить комментарий</button>
-                        <button onclick="editTimer('acid-full')">⏱ Изменить время</button>
-                        <div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div>
-                        <div class="color-palette" id="palette-acid-full"></div>
-                        <button class="delete-opt" onclick="deleteTimer('acid-full')">🗑️ Удалить таймер</button>
-                    </div>
-                </div>
-            </div>
-            <div class="timer-block" id="acid-full">
-                <div class="sub-title"><span class="sub-text">Полная закупка сырья</span><button class="btn-edit-sub" onclick="editSubTitle('acid-full')">✏️</button></div>
-                <div class="timer-display"><div class="timer-value idle" id="acid-full-time">02:30:00</div><div class="status-badge ready" id="acid-full-status">Готов</div></div>
-                <div class="progress-bar-container"><div class="progress-bar green" id="acid-full-bar"></div></div>
-                <div class="btn-group"><button class="btn btn-start" onclick="startTimer('acid-full')">▶ Старт</button><button class="btn btn-pause" onclick="pauseTimer('acid-full')">⏸ Пауза</button><button class="btn btn-reset" onclick="resetTimer('acid-full')">↺ Сброс</button></div>
-            </div>
+        <div class="card acid" draggable="true" id="card-acid-full" data-title="Кислотная лаборатория ①" data-desc="Полная закупка сырья" data-color="#ffb300" data-icon="🧪">
+            <div class="card-header"><div class="card-icon">🧪</div><div class="card-title-wrap"><div class="card-title">Кислотная лаборатория ①</div></div><div class="card-actions-wrap"><button class="btn-kebab" onclick="toggleMenu('acid-full')">⋮</button><div class="dropdown-menu" id="menu-acid-full"><button onclick="renameCard('acid-full')">✏️ Изменить название</button><button onclick="editSubTitle('acid-full')">📝 Изменить комментарий</button><button onclick="editTimer('acid-full')">⏱ Изменить время</button><div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div><div class="color-palette" id="palette-acid-full"></div><button class="delete-opt" onclick="deleteTimer('acid-full')">🗑️ Удалить таймер</button></div></div></div>
+            <div class="timer-block" id="acid-full"><div class="sub-title"><span class="sub-text">Полная закупка сырья</span></div><div class="timer-display"><div class="timer-value idle" id="acid-full-time">02:30:00</div><div class="status-badge ready" id="acid-full-status">Готов</div></div><div class="progress-bar-container"><div class="progress-bar green" id="acid-full-bar"></div></div><div class="btn-group-horizontal"><button class="btn-icon btn-start-icon" onclick="startTimer('acid-full')">▶</button><button class="btn-icon btn-pause-icon" onclick="pauseTimer('acid-full')">⏸</button><button class="btn-icon btn-reset-icon" onclick="resetTimer('acid-full')">↺</button></div></div>
         </div>
-
-        <div class="card acid" id="card-acid-partial" data-title="Кислотная лаборатория ②" data-desc="Неполная закупка" data-color="#ffb300">
-            <div class="card-header"><div class="card-icon">🧪</div>
-                <div class="card-title-wrap"><div class="card-title">Кислотная лаборатория ②</div></div>
-                <div class="card-actions-wrap">
-                    <button class="btn-kebab" onclick="toggleMenu('acid-partial')">⋮</button>
-                    <div class="dropdown-menu" id="menu-acid-partial">
-                        <button onclick="renameCard('acid-partial')">✏️ Изменить название</button>
-                        <button onclick="editSubTitle('acid-partial')">📝 Изменить комментарий</button>
-                        <button onclick="editTimer('acid-partial')">⏱ Изменить время</button>
-                        <div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div>
-                        <div class="color-palette" id="palette-acid-partial"></div>
-                        <button class="delete-opt" onclick="deleteTimer('acid-partial')">🗑️ Удалить таймер</button>
-                    </div>
-                </div>
-            </div>
-            <div class="timer-block" id="acid-partial">
-                <div class="sub-title"><span class="sub-text">Неполная закупка</span><button class="btn-edit-sub" onclick="editSubTitle('acid-partial')">✏️</button></div>
-                <div class="timer-display"><div class="timer-value idle" id="acid-partial-time">01:40:00</div><div class="status-badge ready" id="acid-partial-status">Готов</div></div>
-                <div class="progress-bar-container"><div class="progress-bar green" id="acid-partial-bar"></div></div>
-                <div class="btn-group"><button class="btn btn-start" onclick="startTimer('acid-partial')">▶ Старт</button><button class="btn btn-pause" onclick="pauseTimer('acid-partial')">⏸ Пауза</button><button class="btn btn-reset" onclick="resetTimer('acid-partial')">↺ Сброс</button></div>
-            </div>
+        <div class="card acid" draggable="true" id="card-acid-partial" data-title="Кислотная лаборатория ②" data-desc="Неполная закупка" data-color="#ffb300" data-icon="🧪">
+            <div class="card-header"><div class="card-icon">🧪</div><div class="card-title-wrap"><div class="card-title">Кислотная лаборатория ②</div></div><div class="card-actions-wrap"><button class="btn-kebab" onclick="toggleMenu('acid-partial')">⋮</button><div class="dropdown-menu" id="menu-acid-partial"><button onclick="renameCard('acid-partial')">✏️ Изменить название</button><button onclick="editSubTitle('acid-partial')">📝 Изменить комментарий</button><button onclick="editTimer('acid-partial')">⏱ Изменить время</button><div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div><div class="color-palette" id="palette-acid-partial"></div><button class="delete-opt" onclick="deleteTimer('acid-partial')">🗑️ Удалить таймер</button></div></div></div>
+            <div class="timer-block" id="acid-partial"><div class="sub-title"><span class="sub-text">Неполная закупка</span></div><div class="timer-display"><div class="timer-value idle" id="acid-partial-time">01:40:00</div><div class="status-badge ready" id="acid-partial-status">Готов</div></div><div class="progress-bar-container"><div class="progress-bar green" id="acid-partial-bar"></div></div><div class="btn-group-horizontal"><button class="btn-icon btn-start-icon" onclick="startTimer('acid-partial')">▶</button><button class="btn-icon btn-pause-icon" onclick="pauseTimer('acid-partial')">⏸</button><button class="btn-icon btn-reset-icon" onclick="resetTimer('acid-partial')">↺</button></div></div>
         </div>
-
-        <div class="card nightclub" id="card-nightclub" data-title="Ночной клуб" data-desc="Визит: деньги + репутация" data-color="#ba68c8">
-            <div class="card-header"><div class="card-icon">🎵</div>
-                <div class="card-title-wrap"><div class="card-title">Ночной клуб</div></div>
-                <div class="card-actions-wrap">
-                    <button class="btn-kebab" onclick="toggleMenu('nightclub')">⋮</button>
-                    <div class="dropdown-menu" id="menu-nightclub">
-                        <button onclick="renameCard('nightclub')">✏️ Изменить название</button>
-                        <button onclick="editSubTitle('nightclub')">📝 Изменить комментарий</button>
-                        <button onclick="editTimer('nightclub')">⏱ Изменить время</button>
-                        <div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div>
-                        <div class="color-palette" id="palette-nightclub"></div>
-                        <button class="delete-opt" onclick="deleteTimer('nightclub')">🗑️ Удалить таймер</button>
-                    </div>
-                </div>
-            </div>
-            <div class="timer-block" id="nightclub">
-                <div class="sub-title"><span class="sub-text">Визит: деньги + репутация</span><button class="btn-edit-sub" onclick="editSubTitle('nightclub')">✏️</button></div>
-                <div class="timer-display"><div class="timer-value idle" id="nightclub-time">01:36:00</div><div class="status-badge ready" id="nightclub-status">Готов</div></div>
-                <div class="progress-bar-container"><div class="progress-bar purple" id="nightclub-bar"></div></div>
-                <div class="btn-group"><button class="btn btn-start" onclick="startTimer('nightclub')">▶ Старт</button><button class="btn btn-pause" onclick="pauseTimer('nightclub')">⏸ Пауза</button><button class="btn btn-reset" onclick="resetTimer('nightclub')">↺ Сброс</button></div>
-            </div>
+        <div class="card nightclub" draggable="true" id="card-nightclub" data-title="Ночной клуб" data-desc="Визит: деньги + репутация" data-color="#ba68c8" data-icon="🎵">
+            <div class="card-header"><div class="card-icon">🎵</div><div class="card-title-wrap"><div class="card-title">Ночной клуб</div></div><div class="card-actions-wrap"><button class="btn-kebab" onclick="toggleMenu('nightclub')">⋮</button><div class="dropdown-menu" id="menu-nightclub"><button onclick="renameCard('nightclub')">✏️ Изменить название</button><button onclick="editSubTitle('nightclub')">📝 Изменить комментарий</button><button onclick="editTimer('nightclub')">⏱ Изменить время</button><div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div><div class="color-palette" id="palette-nightclub"></div><button class="delete-opt" onclick="deleteTimer('nightclub')">🗑️ Удалить таймер</button></div></div></div>
+            <div class="timer-block" id="nightclub"><div class="sub-title"><span class="sub-text">Визит: деньги + репутация</span></div><div class="timer-display"><div class="timer-value idle" id="nightclub-time">01:36:00</div><div class="status-badge ready" id="nightclub-status">Готов</div></div><div class="progress-bar-container"><div class="progress-bar purple" id="nightclub-bar"></div></div><div class="btn-group-horizontal"><button class="btn-icon btn-start-icon" onclick="startTimer('nightclub')">▶</button><button class="btn-icon btn-pause-icon" onclick="pauseTimer('nightclub')">⏸</button><button class="btn-icon btn-reset-icon" onclick="resetTimer('nightclub')">↺</button></div></div>
         </div>
-
-        <div class="card cargo" id="card-cargo-1" data-title="Утилизационный цех №1" data-desc="Переработка авто" data-color="#ff9800">
-            <div class="card-header"><div class="card-icon">🚗</div>
-                <div class="card-title-wrap"><div class="card-title">Утилизационный цех №1</div></div>
-                <div class="card-actions-wrap">
-                    <button class="btn-kebab" onclick="toggleMenu('cargo-1')">⋮</button>
-                    <div class="dropdown-menu" id="menu-cargo-1">
-                        <button onclick="renameCard('cargo-1')">✏️ Изменить название</button>
-                        <button onclick="editSubTitle('cargo-1')">📝 Изменить комментарий</button>
-                        <button onclick="editTimer('cargo-1')">⏱ Изменить время</button>
-                        <div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div>
-                        <div class="color-palette" id="palette-cargo-1"></div>
-                        <button class="delete-opt" onclick="deleteTimer('cargo-1')">🗑️ Удалить таймер</button>
-                    </div>
-                </div>
-            </div>
-            <div class="timer-block" id="cargo-1">
-                <div class="sub-title"><span class="sub-text">Переработка авто</span><button class="btn-edit-sub" onclick="editSubTitle('cargo-1')">✏️</button></div>
-                <div class="timer-display"><div class="timer-value idle" id="cargo-1-time">00:40:00</div><div class="status-badge ready" id="cargo-1-status">Готов</div></div>
-                <div class="progress-bar-container"><div class="progress-bar orange" id="cargo-1-bar"></div></div>
-                <div class="btn-group"><button class="btn btn-start" onclick="startTimer('cargo-1')">▶ Старт</button><button class="btn btn-pause" onclick="pauseTimer('cargo-1')">⏸ Пауза</button><button class="btn btn-reset" onclick="resetTimer('cargo-1')">↺ Сброс</button></div>
-            </div>
+        <div class="card cargo" draggable="true" id="card-cargo-1" data-title="Утилизационный цех №1" data-desc="Переработка авто" data-color="#ff9800" data-icon="🚗">
+            <div class="card-header"><div class="card-icon">🚗</div><div class="card-title-wrap"><div class="card-title">Утилизационный цех №1</div></div><div class="card-actions-wrap"><button class="btn-kebab" onclick="toggleMenu('cargo-1')">⋮</button><div class="dropdown-menu" id="menu-cargo-1"><button onclick="renameCard('cargo-1')">✏️ Изменить название</button><button onclick="editSubTitle('cargo-1')">📝 Изменить комментарий</button><button onclick="editTimer('cargo-1')">⏱ Изменить время</button><div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div><div class="color-palette" id="palette-cargo-1"></div><button class="delete-opt" onclick="deleteTimer('cargo-1')">🗑️ Удалить таймер</button></div></div></div>
+            <div class="timer-block" id="cargo-1"><div class="sub-title"><span class="sub-text">Переработка авто</span></div><div class="timer-display"><div class="timer-value idle" id="cargo-1-time">00:40:00</div><div class="status-badge ready" id="cargo-1-status">Готов</div></div><div class="progress-bar-container"><div class="progress-bar orange" id="cargo-1-bar"></div></div><div class="btn-group-horizontal"><button class="btn-icon btn-start-icon" onclick="startTimer('cargo-1')">▶</button><button class="btn-icon btn-pause-icon" onclick="pauseTimer('cargo-1')">⏸</button><button class="btn-icon btn-reset-icon" onclick="resetTimer('cargo-1')">↺</button></div></div>
         </div>
-
-        <div class="card cargo" id="card-cargo-2" data-title="Утилизационный цех №2" data-desc="Переработка авто" data-color="#ff9800">
-            <div class="card-header"><div class="card-icon">🚗</div>
-                <div class="card-title-wrap"><div class="card-title">Утилизационный цех №2</div></div>
-                <div class="card-actions-wrap">
-                    <button class="btn-kebab" onclick="toggleMenu('cargo-2')">⋮</button>
-                    <div class="dropdown-menu" id="menu-cargo-2">
-                        <button onclick="renameCard('cargo-2')">✏️ Изменить название</button>
-                        <button onclick="editSubTitle('cargo-2')">📝 Изменить комментарий</button>
-                        <button onclick="editTimer('cargo-2')">⏱ Изменить время</button>
-                        <div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div>
-                        <div class="color-palette" id="palette-cargo-2"></div>
-                        <button class="delete-opt" onclick="deleteTimer('cargo-2')">🗑️ Удалить таймер</button>
-                    </div>
-                </div>
-            </div>
-            <div class="timer-block" id="cargo-2">
-                <div class="sub-title"><span class="sub-text">Переработка авто</span><button class="btn-edit-sub" onclick="editSubTitle('cargo-2')">✏️</button></div>
-                <div class="timer-display"><div class="timer-value idle" id="cargo-2-time">00:40:00</div><div class="status-badge ready" id="cargo-2-status">Готов</div></div>
-                <div class="progress-bar-container"><div class="progress-bar orange" id="cargo-2-bar"></div></div>
-                <div class="btn-group"><button class="btn btn-start" onclick="startTimer('cargo-2')">▶ Старт</button><button class="btn btn-pause" onclick="pauseTimer('cargo-2')">⏸ Пауза</button><button class="btn btn-reset" onclick="resetTimer('cargo-2')">↺ Сброс</button></div>
-            </div>
+        <div class="card cargo" draggable="true" id="card-cargo-2" data-title="Утилизационный цех №2" data-desc="Переработка авто" data-color="#ff9800" data-icon="🚗">
+            <div class="card-header"><div class="card-icon">🚗</div><div class="card-title-wrap"><div class="card-title">Утилизационный цех №2</div></div><div class="card-actions-wrap"><button class="btn-kebab" onclick="toggleMenu('cargo-2')">⋮</button><div class="dropdown-menu" id="menu-cargo-2"><button onclick="renameCard('cargo-2')">✏️ Изменить название</button><button onclick="editSubTitle('cargo-2')">📝 Изменить комментарий</button><button onclick="editTimer('cargo-2')">⏱ Изменить время</button><div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div><div class="color-palette" id="palette-cargo-2"></div><button class="delete-opt" onclick="deleteTimer('cargo-2')">🗑️ Удалить таймер</button></div></div></div>
+            <div class="timer-block" id="cargo-2"><div class="sub-title"><span class="sub-text">Переработка авто</span></div><div class="timer-display"><div class="timer-value idle" id="cargo-2-time">00:40:00</div><div class="status-badge ready" id="cargo-2-status">Готов</div></div><div class="progress-bar-container"><div class="progress-bar orange" id="cargo-2-bar"></div></div><div class="btn-group-horizontal"><button class="btn-icon btn-start-icon" onclick="startTimer('cargo-2')">▶</button><button class="btn-icon btn-pause-icon" onclick="pauseTimer('cargo-2')">⏸</button><button class="btn-icon btn-reset-icon" onclick="resetTimer('cargo-2')">↺</button></div></div>
         </div>
-
-        <div class="card auto-shop" id="card-autoshop-1" data-title="Автомастерская №1" data-desc="Обслуживание авто" data-color="#ffb300">
-            <div class="card-header"><div class="card-icon">🔧</div>
-                <div class="card-title-wrap"><div class="card-title">Автомастерская №1</div></div>
-                <div class="card-actions-wrap">
-                    <button class="btn-kebab" onclick="toggleMenu('autoshop-1')">⋮</button>
-                    <div class="dropdown-menu" id="menu-autoshop-1">
-                        <button onclick="renameCard('autoshop-1')">✏️ Изменить название</button>
-                        <button onclick="editSubTitle('autoshop-1')">📝 Изменить комментарий</button>
-                        <button onclick="editTimer('autoshop-1')">⏱ Изменить время</button>
-                        <div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div>
-                        <div class="color-palette" id="palette-autoshop-1"></div>
-                        <button class="delete-opt" onclick="deleteTimer('autoshop-1')">🗑️ Удалить таймер</button>
-                    </div>
-                </div>
-            </div>
-            <div class="timer-block" id="autoshop-1">
-                <div class="sub-title"><span class="sub-text">Обслуживание авто</span><button class="btn-edit-sub" onclick="editSubTitle('autoshop-1')">✏️</button></div>
-                <div class="timer-display"><div class="timer-value idle" id="autoshop-1-time">00:30:00</div><div class="status-badge ready" id="autoshop-1-status">Готов</div></div>
-                <div class="progress-bar-container"><div class="progress-bar gold" id="autoshop-1-bar"></div></div>
-                <div class="btn-group"><button class="btn btn-start" onclick="startTimer('autoshop-1')">▶ Старт</button><button class="btn btn-pause" onclick="pauseTimer('autoshop-1')">⏸ Пауза</button><button class="btn btn-reset" onclick="resetTimer('autoshop-1')">↺ Сброс</button></div>
-            </div>
+        <div class="card auto-shop" draggable="true" id="card-autoshop-1" data-title="Автомастерская №1" data-desc="Обслуживание авто" data-color="#ffb300" data-icon="🔧">
+            <div class="card-header"><div class="card-icon">🔧</div><div class="card-title-wrap"><div class="card-title">Автомастерская №1</div></div><div class="card-actions-wrap"><button class="btn-kebab" onclick="toggleMenu('autoshop-1')">⋮</button><div class="dropdown-menu" id="menu-autoshop-1"><button onclick="renameCard('autoshop-1')">✏️ Изменить название</button><button onclick="editSubTitle('autoshop-1')">📝 Изменить комментарий</button><button onclick="editTimer('autoshop-1')">⏱ Изменить время</button><div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div><div class="color-palette" id="palette-autoshop-1"></div><button class="delete-opt" onclick="deleteTimer('autoshop-1')">🗑️ Удалить таймер</button></div></div></div>
+            <div class="timer-block" id="autoshop-1"><div class="sub-title"><span class="sub-text">Обслуживание авто</span></div><div class="timer-display"><div class="timer-value idle" id="autoshop-1-time">00:30:00</div><div class="status-badge ready" id="autoshop-1-status">Готов</div></div><div class="progress-bar-container"><div class="progress-bar gold" id="autoshop-1-bar"></div></div><div class="btn-group-horizontal"><button class="btn-icon btn-start-icon" onclick="startTimer('autoshop-1')">▶</button><button class="btn-icon btn-pause-icon" onclick="pauseTimer('autoshop-1')">⏸</button><button class="btn-icon btn-reset-icon" onclick="resetTimer('autoshop-1')">↺</button></div></div>
         </div>
-
-        <div class="card auto-shop" id="card-autoshop-2" data-title="Автомастерская №2" data-desc="Обслуживание авто" data-color="#ffb300">
-            <div class="card-header"><div class="card-icon">🔧</div>
-                <div class="card-title-wrap"><div class="card-title">Автомастерская №2</div></div>
-                <div class="card-actions-wrap">
-                    <button class="btn-kebab" onclick="toggleMenu('autoshop-2')">⋮</button>
-                    <div class="dropdown-menu" id="menu-autoshop-2">
-                        <button onclick="renameCard('autoshop-2')">✏️ Изменить название</button>
-                        <button onclick="editSubTitle('autoshop-2')">📝 Изменить комментарий</button>
-                        <button onclick="editTimer('autoshop-2')">⏱ Изменить время</button>
-                        <div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div>
-                        <div class="color-palette" id="palette-autoshop-2"></div>
-                        <button class="delete-opt" onclick="deleteTimer('autoshop-2')">🗑️ Удалить таймер</button>
-                    </div>
-                </div>
-            </div>
-            <div class="timer-block" id="autoshop-2">
-                <div class="sub-title"><span class="sub-text">Обслуживание авто</span><button class="btn-edit-sub" onclick="editSubTitle('autoshop-2')">✏️</button></div>
-                <div class="timer-display"><div class="timer-value idle" id="autoshop-2-time">00:30:00</div><div class="status-badge ready" id="autoshop-2-status">Готов</div></div>
-                <div class="progress-bar-container"><div class="progress-bar gold" id="autoshop-2-bar"></div></div>
-                <div class="btn-group"><button class="btn btn-start" onclick="startTimer('autoshop-2')">▶ Старт</button><button class="btn btn-pause" onclick="pauseTimer('autoshop-2')">⏸ Пауза</button><button class="btn btn-reset" onclick="resetTimer('autoshop-2')">↺ Сброс</button></div>
-            </div>
+        <div class="card auto-shop" draggable="true" id="card-autoshop-2" data-title="Автомастерская №2" data-desc="Обслуживание авто" data-color="#ffb300" data-icon="🔧">
+            <div class="card-header"><div class="card-icon">🔧</div><div class="card-title-wrap"><div class="card-title">Автомастерская №2</div></div><div class="card-actions-wrap"><button class="btn-kebab" onclick="toggleMenu('autoshop-2')">⋮</button><div class="dropdown-menu" id="menu-autoshop-2"><button onclick="renameCard('autoshop-2')">✏️ Изменить название</button><button onclick="editSubTitle('autoshop-2')">📝 Изменить комментарий</button><button onclick="editTimer('autoshop-2')">⏱ Изменить время</button><div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div><div class="color-palette" id="palette-autoshop-2"></div><button class="delete-opt" onclick="deleteTimer('autoshop-2')">🗑️ Удалить таймер</button></div></div></div>
+            <div class="timer-block" id="autoshop-2"><div class="sub-title"><span class="sub-text">Обслуживание авто</span></div><div class="timer-display"><div class="timer-value idle" id="autoshop-2-time">00:30:00</div><div class="status-badge ready" id="autoshop-2-status">Готов</div></div><div class="progress-bar-container"><div class="progress-bar gold" id="autoshop-2-bar"></div></div><div class="btn-group-horizontal"><button class="btn-icon btn-start-icon" onclick="startTimer('autoshop-2')">▶</button><button class="btn-icon btn-pause-icon" onclick="pauseTimer('autoshop-2')">⏸</button><button class="btn-icon btn-reset-icon" onclick="resetTimer('autoshop-2')">↺</button></div></div>
         </div>
-
-        <div class="card bunker" id="card-bunker" data-title="Бункер" data-desc="1 закупка → полный склад → развоз" data-color="#2196f3">
-            <div class="card-header"><div class="card-icon">🏭</div>
-                <div class="card-title-wrap"><div class="card-title">Бункер</div></div>
-                <div class="card-actions-wrap">
-                    <button class="btn-kebab" onclick="toggleMenu('bunker')">⋮</button>
-                    <div class="dropdown-menu" id="menu-bunker">
-                        <button onclick="renameCard('bunker')">✏️ Изменить название</button>
-                        <button onclick="editSubTitle('bunker')">📝 Изменить комментарий</button>
-                        <button onclick="editTimer('bunker')">⏱ Изменить время</button>
-                        <div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div>
-                        <div class="color-palette" id="palette-bunker"></div>
-                        <button class="delete-opt" onclick="deleteTimer('bunker')">🗑️ Удалить таймер</button>
-                    </div>
-                </div>
-            </div>
-            <div class="timer-block" id="bunker">
-                <div class="sub-title"><span class="sub-text">1 закупка → полный склад → развоз</span><button class="btn-edit-sub" onclick="editSubTitle('bunker')">✏️</button></div>
-                <div class="timer-display"><div class="timer-value idle" id="bunker-time">02:10:00</div><div class="status-badge ready" id="bunker-status">Готов</div></div>
-                <div class="progress-bar-container"><div class="progress-bar blue" id="bunker-bar"></div></div>
-                <div class="btn-group"><button class="btn btn-start" onclick="startTimer('bunker')">▶ Старт</button><button class="btn btn-pause" onclick="pauseTimer('bunker')">⏸ Пауза</button><button class="btn btn-reset" onclick="resetTimer('bunker')">↺ Сброс</button></div>
-            </div>
+        <div class="card bunker" draggable="true" id="card-bunker" data-title="Бункер" data-desc="ЗАКУПКА СЫРЬЯ" data-color="#2196f3" data-icon="🏭">
+            <div class="card-header"><div class="card-icon">🏭</div><div class="card-title-wrap"><div class="card-title">Бункер</div></div><div class="card-actions-wrap"><button class="btn-kebab" onclick="toggleMenu('bunker')">⋮</button><div class="dropdown-menu" id="menu-bunker"><button onclick="renameCard('bunker')">✏️ Изменить название</button><button onclick="editSubTitle('bunker')">📝 Изменить комментарий</button><button onclick="editTimer('bunker')">⏱ Изменить время</button><div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div><div class="color-palette" id="palette-bunker"></div><button class="delete-opt" onclick="deleteTimer('bunker')">🗑️ Удалить таймер</button></div></div></div>
+            <div class="timer-block" id="bunker"><div class="sub-title"><span class="sub-text">ЗАКУПКА СЫРЬЯ</span></div><div class="timer-display"><div class="timer-value idle" id="bunker-time">02:10:00</div><div class="status-badge ready" id="bunker-status">Готов</div></div><div class="progress-bar-container"><div class="progress-bar blue" id="bunker-bar"></div></div><div class="btn-group-horizontal"><button class="btn-icon btn-start-icon" onclick="startTimer('bunker')">▶</button><button class="btn-icon btn-pause-icon" onclick="pauseTimer('bunker')">⏸</button><button class="btn-icon btn-reset-icon" onclick="resetTimer('bunker')">↺</button></div></div>
         </div>
     </template>
 
     <div class="grid" id="main-grid"></div>
 
     <div class="admin-controls">
-        <button class="btn-admin" onclick="resetAllTimers()">🔄 Сброс</button>
-        <button class="btn-admin" onclick="resetToDefaults()">🔹 По умолч.</button>
+        <button class="btn-admin btn-reset-settings" onclick="resetToDefaults()">🔄 СБРОС НАСТРОЕК</button>
         <button class="btn-admin" onclick="exportSettings()">⬇️ Экспорт</button>
         <button class="btn-admin" onclick="document.getElementById('file-import').click()">⬆️ Импорт</button>
     </div>
 
-    <div class="version-label">v0.29 beta</div>
+    <div class="version-wrapper">
+        <div class="version-label" id="versionLabel">v0.1.4 beta</div>
+        <a href="https://github.com/uglovevgenij/gtaOnlineTimer" target="_blank" class="update-link" id="updateLink">📦 Check updates</a>
+    </div>
     <input type="file" id="file-import" accept=".json" onchange="importSettings(event)">
 
     <div class="floating-buttons">
@@ -431,37 +471,117 @@
             <div class="modal-text">
                 <h3>🎮 Управление таймерами</h3>
                 <ul>
-                    <li><span>▶ Старт / ⏸ Пауза / ↺ Сброс</span> — управление каждым таймером индивидуально.</li>
-                    <li><span>⋮ Меню карточки</span> — содержит все настройки: название, комментарий, время, цвет, удаление.</li>
-                    <li><span>🎨 Палитра цветов</span> — 9 цветов для визуального разделения блоков.</li>
+                    <li><span>▶ Старт / ⏸ Пауза / ↺ Сброс</span> — иконки внизу карточки.</li>
+                    <li><span>⋮ Меню карточки</span> — все настройки: название, комментарий, время, цвет, удаление.</li>
+                    <li><span>🎨 Палитра цветов</span> — 10 цветов среднего тона.</li>
+                    <li><span>🖱 Перетаскивание</span> — левая половина → вставка слева, правая → справа.</li>
+                    <li><span>😀 Эмодзи</span> — кликните на иконку слева от названия, чтобы выбрать другой из 25 вариантов.</li>
                 </ul>
                 <h3>⚡ Глобальные кнопки</h3>
                 <ul>
-                    <li><span>🟢 В игре</span> — запускает ВСЕ таймеры, стоящие на паузе.</li>
-                    <li><span>🔴 Не в игре</span> — ставит на паузу ВСЕ активные таймеры.</li>
+                    <li><span>🟢 В игре</span> — запускает все таймеры на паузе.</li>
+                    <li><span>🔴 Не в игре</span> — ставит на паузу все активные таймеры.</li>
                 </ul>
                 <h3>🛠 Админ-панель</h3>
                 <ul>
-                    <li><span>🔄 Сброс</span> — останавливает и сбрасывает время всех текущих таймеров.</li>
-                    <li><span>🔹 По умолч.</span> — полностью восстанавливает стандартные блоки и настройки.</li>
-                    <li><span>⬇️ Экспорт</span> — скачивает JSON-файл со всеми настройками.</li>
-                    <li><span>⬆️ Импорт</span> — загружает и восстанавливает конфигурацию из файла.</li>
+                    <li><span>🔄 СБРОС НАСТРОЕК</span> — полный сброс к исходному состоянию (удаляет пользовательские таймеры, сбрасывает порядок, цвета и эмодзи).</li>
+                    <li><span>⬇️ Экспорт</span> — сохраняет ВСЁ.</li>
+                    <li><span>⬆️ Импорт</span> — восстанавливает из файла.</li>
                 </ul>
                 <h3>✨ Дополнительно</h3>
                 <ul>
-                    <li><span>Фоновый отсчёт</span> — таймеры продолжают работать при закрытии вкладки.</li>
                     <li><span>➕ Добавить</span> — создание пользовательских таймеров.</li>
+                    <li><span>Удаление встроенных таймеров сохраняется</span> — после перезагрузки они не восстанавливаются.</li>
                 </ul>
             </div>
             <button class="modal-close" onclick="toggleModal()">Закрыть</button>
         </div>
     </div>
 
+    <div class="modal-overlay" id="changelogModal" onclick="handleChangelogOverlayClick(event)">
+        <div class="modal-box">
+            <div class="modal-title">📋 Что нового</div>
+            <div class="modal-text" id="changelogContent"></div>
+            <button class="modal-close" onclick="closeChangelogModal()">Закрыть</button>
+        </div>
+    </div>
+
     <div class="notification" id="notification"></div>
 
     <script>
-        var availableColors = ['#ffb300', '#4caf50', '#2196f3', '#f44336', '#ff9800', '#ba68c8', '#00bcd4', '#e91e63', '#9e9e9e'];
+        // Массив доступных эмодзи
+        var availableEmojis = [
+            "🧪", "🧫", "⚗️", "🔬", "🧬",  // химия/лаборатория
+            "🎵", "🎶", "🎧", "🎤", "🪩",  // музыка/клуб
+            "🚗", "🚙", "🏎️", "🛻", "🔧",  // авто
+            "🏭", "⚙️", "🔩", "🛢️", "💣",  // промышленность
+            "⏱️", "⏲️", "⏰", "⌛", "🕰️",  // время
+            "💰", "💵", "💎", "🎰", "🏦"   // деньги/казино
+        ];
         
+        // История версий
+        var changelog = [
+            { version: "0.1.4 beta", date: "2025-05-22", changes: ["😀 Добавлена возможность менять эмодзи у таймеров (клик на иконку слева от названия).", "🎨 Палитра из 25 эмодзи на выбор. Выбор сохраняется в настройках."] },
+            { version: "0.1.3 beta", date: "2025-05-22", changes: ["🔤 Шрифт заголовков и кнопок заменён на PT Sans для лучшей поддержки кириллицы."] },
+            { version: "0.1.2 beta", date: "2025-05-22", changes: ["✨ Незначительные улучшения дизайна."] },
+            { version: "0.1.1 beta", date: "2025-05-21", changes: ["🐛 Исправлен баг: удалённые встроенные таймеры больше не возвращаются после перезагрузки страницы."] },
+            { version: "0.1.0 beta", date: "2025-05-21", changes: ["🎉 Обновление до версии 0.1.0 beta.", "📝 Изменён комментарий у бункера.", "🎨 Палитра цветов расширена до 10 цветов.", "📐 Выровнены отступы.", "✏️ Кнопки заменены на иконки."] }
+        ];
+
+        function showChangelog() {
+            var container = document.getElementById('changelogContent');
+            if (!container) return;
+            var html = '';
+            for (var i = 0; i < changelog.length; i++) {
+                var entry = changelog[i];
+                html += '<div class="changelog-entry">';
+                html += '<div class="changelog-version">' + entry.version + ' <span class="changelog-date">(' + entry.date + ')</span></div>';
+                html += '<ul class="changelog-list">';
+                for (var j = 0; j < entry.changes.length; j++) html += '<li>' + entry.changes[j] + '</li>';
+                html += '</ul></div>';
+            }
+            container.innerHTML = html;
+            document.getElementById('changelogModal').classList.add('active');
+        }
+        function closeChangelogModal() { document.getElementById('changelogModal').classList.remove('active'); }
+        function handleChangelogOverlayClick(e) { if (e.target === e.currentTarget) closeChangelogModal(); }
+
+        // Функция сравнения версий
+        function compareVersions(v1, v2) {
+            var parts1 = v1.split('.').map(Number);
+            var parts2 = v2.split('.').map(Number);
+            for (var i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+                var n1 = i < parts1.length ? parts1[i] : 0;
+                var n2 = i < parts2.length ? parts2[i] : 0;
+                if (n1 > n2) return 1;
+                if (n1 < n2) return -1;
+            }
+            return 0;
+        }
+
+        // Конвертация старого формата в новый
+        function convertOldConfig(oldData) {
+            var converted = {
+                version: oldData.version || "0.0.1",
+                date: oldData.date || new Date().toISOString(),
+                timers: oldData.timers || {},
+                customMeta: oldData.customMeta || [],
+                customCounter: oldData.customCounter || 0,
+                titles: oldData.titles || {},
+                order: oldData.order || [],
+                deletedBuiltIn: oldData.deletedBuiltIn || [],
+                icons: oldData.icons || {}
+            };
+            if (!oldData.deletedBuiltIn) converted.deletedBuiltIn = [];
+            if (!oldData.order) converted.order = [];
+            if (!oldData.titles) converted.titles = {};
+            if (!oldData.icons) converted.icons = {};
+            return converted;
+        }
+
+        // Основные переменные
+        var availableColors = ['#ffb300', '#4caf50', '#2196f3', '#f44336', '#ff9800', '#ba68c8', '#00bcd4', '#e91e63', '#9e9e9e', '#3f51b5'];
+        var builtInTimerIds = ['acid-full', 'acid-partial', 'nightclub', 'cargo-1', 'cargo-2', 'autoshop-1', 'autoshop-2', 'bunker'];
         var defaultTimers = {
             'acid-full':    { duration: 2*3600 + 30*60, label: 'Кислота (полная закупка)' },
             'acid-partial': { duration: 1*3600 + 40*60, label: 'Кислота (неполная закупка)' },
@@ -472,14 +592,87 @@
             'autoshop-2':   { duration: 30*60,          label: 'Автомастерская (Слот №2)' },
             'bunker':       { duration: 2*3600 + 10*60, label: 'Бункер (партия готова)' }
         };
+        var defaultIcons = {
+            'acid-full': '🧪',
+            'acid-partial': '🧪',
+            'nightclub': '🎵',
+            'cargo-1': '🚗',
+            'cargo-2': '🚗',
+            'autoshop-1': '🔧',
+            'autoshop-2': '🔧',
+            'bunker': '🏭'
+        };
 
         var timers = {};
+        var icons = {}; // хранение выбранных эмодзи
         var isMuted = false;
         var customCounter = 0;
+        var deletedBuiltIn = [];
         var grid = document.getElementById('main-grid');
+        var draggedCard = null;
+        var currentDropTarget = null;
+        var currentDropSide = null;
+        var activeEmojiPicker = null;
 
         function toggleModal() { document.getElementById('modalOverlay').classList.toggle('active'); }
         function handleOverlayClick(e) { if(e.target === e.currentTarget) toggleModal(); }
+
+        // Функция для открытия выбора эмодзи
+        function showEmojiPicker(iconElement, cardId) {
+            // Закрываем предыдущий пикер
+            if (activeEmojiPicker) {
+                activeEmojiPicker.remove();
+                activeEmojiPicker = null;
+            }
+            
+            var picker = document.createElement('div');
+            picker.className = 'emoji-picker';
+            
+            for (var i = 0; i < availableEmojis.length; i++) {
+                var emoji = availableEmojis[i];
+                var option = document.createElement('div');
+                option.className = 'emoji-option';
+                option.textContent = emoji;
+                option.onclick = (function(e, card, em) {
+                    return function() {
+                        // Меняем эмодзи
+                        iconElement.textContent = em;
+                        icons[card] = em;
+                        // Обновляем data-icon у карточки
+                        var cardDiv = document.getElementById('card-' + card);
+                        if (cardDiv) cardDiv.setAttribute('data-icon', em);
+                        saveState();
+                        saveCardTitles();
+                        showNotification('😀 Эмодзи изменён', 'success');
+                        if (activeEmojiPicker) {
+                            activeEmojiPicker.remove();
+                            activeEmojiPicker = null;
+                        }
+                    };
+                })(null, cardId, emoji);
+                picker.appendChild(option);
+            }
+            
+            // Позиционируем пикер
+            var rect = iconElement.getBoundingClientRect();
+            picker.style.position = 'fixed';
+            picker.style.left = rect.left + 'px';
+            picker.style.top = (rect.bottom + 5) + 'px';
+            
+            document.body.appendChild(picker);
+            activeEmojiPicker = picker;
+            
+            // Закрываем при клике вне
+            setTimeout(function() {
+                document.addEventListener('click', function closePicker(e) {
+                    if (activeEmojiPicker && !activeEmojiPicker.contains(e.target) && e.target !== iconElement) {
+                        activeEmojiPicker.remove();
+                        activeEmojiPicker = null;
+                        document.removeEventListener('click', closePicker);
+                    }
+                });
+            }, 0);
+        }
 
         function createColorPalette(timerId) {
             var container = document.getElementById('palette-' + timerId);
@@ -487,7 +680,6 @@
             container.innerHTML = '';
             var card = document.getElementById('card-' + timerId);
             var currentColor = card ? (card.getAttribute('data-color') || '#ffb300') : '#ffb300';
-            
             availableColors.forEach(function(color) {
                 var swatch = document.createElement('div');
                 swatch.className = 'color-swatch';
@@ -509,9 +701,7 @@
                 var swatches = palette.querySelectorAll('.color-swatch');
                 swatches.forEach(function(s) {
                     s.classList.remove('active');
-                    if(s.style.backgroundColor === color || rgbToHex(s.style.backgroundColor) === color) {
-                        s.classList.add('active');
-                    }
+                    if(s.style.backgroundColor === color || rgbToHex(s.style.backgroundColor) === color) s.classList.add('active');
                 });
             }
         }
@@ -520,10 +710,7 @@
             if(rgb.startsWith('#')) return rgb;
             var result = rgb.match(/\d+/g);
             if(!result || result.length < 3) return rgb;
-            return '#' + result.slice(0, 3).map(function(x) {
-                var hex = parseInt(x).toString(16);
-                return hex.length === 1 ? '0' + hex : hex;
-            }).join('');
+            return '#' + result.slice(0, 3).map(function(x) { var hex = parseInt(x).toString(16); return hex.length === 1 ? '0' + hex : hex; }).join('');
         }
 
         function toggleMenu(id) {
@@ -531,535 +718,434 @@
             var target = document.getElementById('menu-' + id);
             var isOpen = target.classList.contains('show');
             allMenus.forEach(function(m) { m.classList.remove('show'); });
-            if (!isOpen) {
-                target.classList.add('show');
-                createColorPalette(id);
-            }
+            if (!isOpen) { target.classList.add('show'); createColorPalette(id); }
         }
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.card-actions-wrap')) {
+            if (!e.target.closest('.card-actions-wrap') && !e.target.closest('.card-icon')) {
                 document.querySelectorAll('.dropdown-menu').forEach(function(m) { m.classList.remove('show'); });
             }
         });
 
-        function initApp() { 
-            grid.innerHTML = ''; 
-            var template = document.getElementById('default-layout');
-            grid.appendChild(template.content.cloneNode(true)); 
-            Object.keys(defaultTimers).forEach(function(id) { 
-                timers[id] = { remaining: defaultTimers[id].duration, total: defaultTimers[id].duration, running: false, intervalId: null, finished: false, label: defaultTimers[id].label }; 
-                updateDisplay(id); 
+        // Drag & Drop
+        function getDropTargetAndSide(container, x, y) {
+            var cards = Array.from(container.querySelectorAll('.card:not(.dragging)'));
+            if (cards.length === 0) return null;
+            for (var i = 0; i < cards.length; i++) {
+                var rect = cards[i].getBoundingClientRect();
+                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                    if (x < rect.left + rect.width / 2) return { target: cards[i], side: 'left' };
+                    else return { target: cards[i], side: 'right' };
+                }
+            }
+            for (var i = 0; i < cards.length; i++) {
+                var rect = cards[i].getBoundingClientRect();
+                var nextCard = cards[i+1];
+                if (nextCard) {
+                    var nextRect = nextCard.getBoundingClientRect();
+                    if (nextRect.top === rect.top && x > rect.right && x < nextRect.left) {
+                        return { target: cards[i], side: 'right' };
+                    }
+                } else {
+                    if (x > rect.right) return { target: cards[i], side: 'right' };
+                }
+            }
+            return null;
+        }
+
+        function clearDropIndicators() {
+            if (currentDropTarget) {
+                currentDropTarget.classList.remove('drag-left', 'drag-right');
+                currentDropTarget = null;
+                currentDropSide = null;
+            }
+        }
+
+        function setDropIndicator(target, side) {
+            clearDropIndicators();
+            if (!target) return;
+            currentDropTarget = target;
+            currentDropSide = side;
+            target.classList.add(side === 'left' ? 'drag-left' : 'drag-right');
+        }
+
+        function initDragAndDrop() {
+            var newGrid = grid.cloneNode(false);
+            while (grid.firstChild) newGrid.appendChild(grid.firstChild);
+            grid.parentNode.replaceChild(newGrid, grid);
+            grid = newGrid;
+
+            grid.addEventListener('dragstart', function(e) {
+                var card = e.target.closest('.card');
+                if (!card) return;
+                draggedCard = card;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', card.id);
+                var dragIcon = document.createElement('div'); dragIcon.style.opacity = '0'; document.body.appendChild(dragIcon);
+                e.dataTransfer.setDragImage(dragIcon, 0, 0);
+                setTimeout(function() { document.body.removeChild(dragIcon); }, 0);
+                card.classList.add('dragging');
+            });
+
+            grid.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                if (!draggedCard) return;
+                e.dataTransfer.dropEffect = 'move';
+                var dropInfo = getDropTargetAndSide(grid, e.clientX, e.clientY);
+                if (dropInfo && dropInfo.target !== draggedCard) setDropIndicator(dropInfo.target, dropInfo.side);
+                else clearDropIndicators();
+            });
+
+            grid.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (!draggedCard) return;
+                if (currentDropTarget && currentDropTarget !== draggedCard) {
+                    var targetCard = currentDropTarget, side = currentDropSide;
+                    if (side === 'left') grid.insertBefore(draggedCard, targetCard);
+                    else grid.insertBefore(draggedCard, targetCard.nextSibling);
+                    saveCardTitles();
+                    showNotification('📦 Порядок таймеров обновлён', 'info');
+                }
+                clearDropIndicators();
+                draggedCard.classList.remove('dragging');
+                draggedCard = null;
+            });
+
+            grid.addEventListener('dragend', function(e) {
+                clearDropIndicators();
+                if (draggedCard) { draggedCard.classList.remove('dragging'); draggedCard = null; }
+            });
+            grid.addEventListener('dragenter', function(e) { e.preventDefault(); });
+            grid.addEventListener('dragexit', function(e) { e.preventDefault(); });
+        }
+
+        function deleteTimer(id) {
+            var t = timers[id];
+            if(!t) return;
+            if(confirm('Удалить "' + t.label + '"?')) {
+                if(t.running) pauseTimer(id);
+                clearInterval(t.intervalId);
+                delete timers[id];
                 var card = document.getElementById('card-' + id);
-                if(card) {
-                    var color = card.getAttribute('data-color') || '#ffb300';
+                if(card) card.remove();
+                if(builtInTimerIds.indexOf(id) !== -1 && deletedBuiltIn.indexOf(id) === -1) {
+                    deletedBuiltIn.push(id);
+                }
+                saveState();
+                saveCardTitles();
+                showNotification('🗑️ Удалён', 'warning');
+            }
+        }
+
+        function buildFromTemplate() {
+            grid.innerHTML = '';
+            var template = document.getElementById('default-layout');
+            grid.appendChild(template.content.cloneNode(true));
+            
+            for(var i = 0; i < deletedBuiltIn.length; i++) {
+                var deletedId = deletedBuiltIn[i];
+                var cardToRemove = document.getElementById('card-' + deletedId);
+                if(cardToRemove) cardToRemove.remove();
+                if(timers[deletedId]) delete timers[deletedId];
+            }
+            
+            Object.keys(defaultTimers).forEach(function(id) {
+                if(deletedBuiltIn.indexOf(id) !== -1) return;
+                if(!timers[id]) {
+                    timers[id] = { remaining: defaultTimers[id].duration, total: defaultTimers[id].duration, running: false, intervalId: null, finished: false, label: defaultTimers[id].label };
+                }
+                updateDisplay(id);
+                var card = document.getElementById('card-' + id);
+                if(card) { 
+                    var color = card.getAttribute('data-color') || '#ffb300'; 
                     card.style.borderTopColor = color;
+                    // Восстанавливаем эмодзи
+                    var iconSpan = card.querySelector('.card-icon');
+                    var savedIcon = icons[id] || defaultIcons[id] || '📦';
+                    if (iconSpan) iconSpan.textContent = savedIcon;
+                    // Добавляем обработчик клика на эмодзи
+                    if (iconSpan && !iconSpan.hasClickListener) {
+                        iconSpan.style.cursor = 'pointer';
+                        iconSpan.onclick = (function(cardId) {
+                            return function(e) {
+                                e.stopPropagation();
+                                showEmojiPicker(this, cardId);
+                            };
+                        })(id);
+                        iconSpan.hasClickListener = true;
+                    }
                 }
-            }); 
-            loadState(); 
+            });
         }
 
-        function startTimer(id) { 
-            var t = timers[id]; 
-            if(!t) return; 
-            if(t.finished) resetTimer(id); 
-            if(t.running) return; 
-            t.running = true; 
-            t.finished = false; 
-            t.intervalId = setInterval(function() { 
-                t.remaining--; 
-                if(t.remaining <= 0) { 
-                    t.remaining = 0; 
-                    t.finished = true; 
-                    t.running = false; 
-                    clearInterval(t.intervalId); 
-                    onTimerComplete(id); 
-                } 
-                updateDisplay(id); 
-            }, 1000); 
-            updateDisplay(id); 
-        }
-        function pauseTimer(id) { 
-            var t = timers[id]; 
-            if(!t || !t.running) return; 
-            t.running = false; 
-            clearInterval(t.intervalId); 
-            updateDisplay(id); 
-        }
-        function resetTimer(id) { 
-            var t = timers[id]; 
-            if(!t) return; 
-            t.running = false; 
-            t.finished = false; 
-            t.remaining = t.total; 
-            clearInterval(t.intervalId); 
-            updateDisplay(id); 
-        }
-        function startAllTimers() { 
-            var c = 0; 
-            Object.keys(timers).forEach(function(id) { 
-                var t = timers[id]; 
-                if(!t.running && !t.finished && t.remaining < t.total) { 
-                    startTimer(id); 
-                    c++; 
-                } 
-            }); 
-            if(c) showNotification('▶️ Запущено: ' + c, 'success'); 
-        }
-        function pauseAllTimers() { 
-            var c = 0; 
-            Object.keys(timers).forEach(function(id) { 
-                if(timers[id].running) { 
-                    pauseTimer(id); 
-                    c++; 
-                } 
-            }); 
-            if(c) showNotification('⏸️ Пауза: ' + c, 'warning'); 
-        }
-        function resetAllTimers() { 
-            var c = 0; 
-            Object.keys(timers).forEach(function(id) { 
-                resetTimer(id); 
-                c++; 
-            }); 
-            if(c) showNotification('🔄 Сброшено: ' + c, 'info'); 
-        }
-
-        function editTimer(id) { 
-            var t = timers[id]; 
-            if(!t) return; 
-            var cur = Math.round(t.total/60); 
-            var nw = prompt('Изменить "' + t.label + '" (мин):', cur); 
-            if(nw === null) return; 
-            var v = parseInt(nw); 
-            if(isNaN(v) || v <= 0) { 
-                showNotification('⚠️ Введите число >0', 'warning'); 
-                return; 
-            }
-            var nt = v * 60; 
-            t.total = nt; 
-            if(t.finished) { 
-                t.remaining = nt; 
-                t.finished = false; 
-            } else if(t.running) { 
-                t.remaining = Math.max(1, Math.round(nt * (1 - ((t.total - t.remaining) / t.total)))); 
-            } else { 
-                t.remaining = nt; 
-            }
-            updateDisplay(id); 
-            saveState(); 
-            showNotification('✅ "' + t.label + '" → ' + v + ' мин', 'success'); 
-        }
-
-        function renameCard(id) { 
-            var card = document.getElementById('card-' + id); 
-            if(!card) return; 
-            var cur = card.getAttribute('data-title') || card.querySelector('.card-title').textContent; 
-            var nw = prompt('Переименовать заголовок:', cur); 
-            if(nw && nw.trim()) { 
-                var clean = nw.trim(); 
-                card.querySelector('.card-title').textContent = clean; 
-                card.setAttribute('data-title', clean); 
-                saveCardTitles(); 
-            } 
-        }
-        function editSubTitle(id) {
-            var card = document.getElementById('card-' + id);
-            if(!card) return;
-            var subSpan = card.querySelector('.sub-title .sub-text');
-            var cur = subSpan ? subSpan.textContent : '';
-            var nw = prompt('Изменить комментарий:', cur);
-            if(nw && nw.trim()) { 
-                subSpan.textContent = nw.trim(); 
-                saveCardTitles(); 
+        function initApp(loadSaved = true) {
+            buildFromTemplate();
+            initDragAndDrop();
+            if (loadSaved) {
+                loadState();
+                for(var i = 0; i < deletedBuiltIn.length; i++) {
+                    var id = deletedBuiltIn[i];
+                    var card = document.getElementById('card-' + id);
+                    if(card) card.remove();
+                    if(timers[id]) delete timers[id];
+                }
+            } else {
+                saveState();
+                saveCardTitles();
             }
         }
 
-        function saveCardTitles() { 
-            var titles = {}; 
-            document.querySelectorAll('#main-grid .card').forEach(function(c) { 
-                var title = c.getAttribute('data-title') || c.querySelector('.card-title').textContent;
-                var descEl = c.querySelector('.sub-title .sub-text');
-                var desc = descEl ? descEl.textContent : '';
-                var color = c.getAttribute('data-color') || '#ffb300';
-                titles[c.id] = { title: title, desc: desc, color: color };
-            }); 
-            localStorage.setItem('gta5-card-titles', JSON.stringify(titles)); 
-        }
-        function loadCardTitles() { 
-            try { 
-                var titles = JSON.parse(localStorage.getItem('gta5-card-titles') || '{}'); 
-                Object.keys(titles).forEach(function(id) { 
-                    var c = document.getElementById(id); 
-                    if(c) { 
-                        c.setAttribute('data-title', titles[id].title); 
-                        c.setAttribute('data-desc', titles[id].desc); 
-                        if(titles[id].color) c.setAttribute('data-color', titles[id].color);
-                        if(c.querySelector('.card-title')) c.querySelector('.card-title').textContent = titles[id].title; 
-                        if(c.querySelector('.sub-title .sub-text')) c.querySelector('.sub-title .sub-text').textContent = titles[id].desc; 
-                        if(titles[id].color) c.style.borderTopColor = titles[id].color;
-                    } 
-                }); 
-            } catch(e) { 
-                console.warn('Load titles error', e); 
-            } 
+        function resetToDefaults() {
+            if(!confirm('Сбросить ВСЁ к исходному состоянию (как при первом открытии)?\nВсе пользовательские таймеры будут удалены, порядок и цвета сброшены, удалённые встроенные таймеры восстановятся.')) return;
+            Object.values(timers).forEach(function(t) { if(t.intervalId) clearInterval(t.intervalId); });
+            for(var k in timers) delete timers[k];
+            customCounter = 0;
+            deletedBuiltIn = [];
+            icons = {}; // сбрасываем эмодзи
+            localStorage.removeItem('gta5-timers-v37');
+            localStorage.removeItem('gta5-card-titles');
+            buildFromTemplate();
+            initDragAndDrop();
+            saveState();
+            saveCardTitles();
+            showNotification('🔹 Полный сброс к исходному состоянию выполнен', 'info');
         }
 
-        function deleteTimer(id) { 
-            var t = timers[id]; 
-            if(!t) return; 
-            if(confirm('Удалить "' + t.label + '"?')) { 
-                if(t.running) pauseTimer(id); 
-                clearInterval(t.intervalId); 
-                delete timers[id]; 
-                var c = document.getElementById('card-' + id); 
-                if(c) c.remove(); 
-                saveState(); 
-                saveCardTitles(); 
-                showNotification('🗑️ Удалён', 'warning'); 
-            } 
+        // Основные функции таймеров
+        function startTimer(id) {
+            var t = timers[id]; if(!t) return;
+            if(t.finished) resetTimer(id);
+            if(t.running) return;
+            t.running = true; t.finished = false;
+            t.intervalId = setInterval(function() {
+                t.remaining--;
+                if(t.remaining <= 0) { t.remaining = 0; t.finished = true; t.running = false; clearInterval(t.intervalId); onTimerComplete(id); }
+                updateDisplay(id);
+            }, 1000);
+            updateDisplay(id);
         }
-
-        function createCustomTimerDOM(id, name) { 
-            var c = document.createElement('div'); 
-            c.className = 'card custom'; 
-            c.id = 'card-' + id; 
-            c.dataset.title = name; 
-            c.dataset.desc = 'Пользовательский'; 
-            c.dataset.color = '#2196f3';
-            c.style.borderTopColor = '#2196f3';
-            c.innerHTML = '<div class="card-header"><div class="card-icon">⏱️</div><div class="card-title-wrap"><div class="card-title">' + name + '</div></div><div class="card-actions-wrap"><button class="btn-kebab" onclick="toggleMenu(\'' + id + '\')">⋮</button><div class="dropdown-menu" id="menu-' + id + '"><button onclick="renameCard(\'' + id + '\')">✏️ Изменить название</button><button onclick="editSubTitle(\'' + id + '\')">📝 Изменить комментарий</button><button onclick="editTimer(\'' + id + '\')">⏱ Изменить время</button><div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div><div class="color-palette" id="palette-' + id + '"></div><button class="delete-opt" onclick="deleteTimer(\'' + id + '\')">🗑️ Удалить таймер</button></div></div></div><div class="timer-block" id="' + id + '"><div class="sub-title"><span class="sub-text">Пользовательский</span><button class="btn-edit-sub" onclick="editSubTitle(\'' + id + '\')">✏️</button></div><div class="timer-display"><div class="timer-value idle" id="' + id + '-time">00:00:00</div><div class="status-badge ready" id="' + id + '-status">Готов</div></div><div class="progress-bar-container"><div class="progress-bar cyan" id="' + id + '-bar"></div></div><div class="btn-group"><button class="btn btn-start" onclick="startTimer(\'' + id + '\')">▶ Старт</button><button class="btn btn-pause" onclick="pauseTimer(\'' + id + '\')">⏸ Пауза</button><button class="btn btn-reset" onclick="resetTimer(\'' + id + '\')">↺ Сброс</button></div></div>'; 
+        function pauseTimer(id) { var t = timers[id]; if(!t || !t.running) return; t.running = false; clearInterval(t.intervalId); updateDisplay(id); }
+        function resetTimer(id) { var t = timers[id]; if(!t) return; t.running = false; t.finished = false; t.remaining = t.total; clearInterval(t.intervalId); updateDisplay(id); }
+        function startAllTimers() { var c = 0; Object.keys(timers).forEach(function(id) { var t = timers[id]; if(!t.running && !t.finished && t.remaining < t.total) { startTimer(id); c++; } }); if(c) showNotification('▶️ Запущено: ' + c, 'success'); }
+        function pauseAllTimers() { var c = 0; Object.keys(timers).forEach(function(id) { if(timers[id].running) { pauseTimer(id); c++; } }); if(c) showNotification('⏸️ Пауза: ' + c, 'warning'); }
+        function editTimer(id) { var t = timers[id]; if(!t) return; var cur = Math.round(t.total/60); var nw = prompt('Изменить "' + t.label + '" (мин):', cur); if(nw === null) return; var v = parseInt(nw); if(isNaN(v) || v <= 0) { showNotification('⚠️ Введите число >0', 'warning'); return; } var nt = v * 60; t.total = nt; if(t.finished) { t.remaining = nt; t.finished = false; } else if(t.running) { t.remaining = Math.max(1, Math.round(nt * (1 - ((t.total - t.remaining) / t.total)))); } else { t.remaining = nt; } updateDisplay(id); saveState(); showNotification('✅ "' + t.label + '" → ' + v + ' мин', 'success'); }
+        function renameCard(id) { var card = document.getElementById('card-' + id); if(!card) return; var cur = card.getAttribute('data-title') || card.querySelector('.card-title').textContent; var nw = prompt('Переименовать заголовок:', cur); if(nw && nw.trim()) { var clean = nw.trim(); card.querySelector('.card-title').textContent = clean; card.setAttribute('data-title', clean); saveCardTitles(); } }
+        function editSubTitle(id) { var card = document.getElementById('card-' + id); if(!card) return; var subSpan = card.querySelector('.sub-title .sub-text'); var cur = subSpan ? subSpan.textContent : ''; var nw = prompt('Изменить комментарий:', cur); if(nw && nw.trim()) { subSpan.textContent = nw.trim(); saveCardTitles(); } }
+        function saveCardTitles() { var titles = {}; document.querySelectorAll('#main-grid .card').forEach(function(c) { var title = c.getAttribute('data-title') || c.querySelector('.card-title').textContent; var descEl = c.querySelector('.sub-title .sub-text'); var desc = descEl ? descEl.textContent : ''; var color = c.getAttribute('data-color') || '#ffb300'; var icon = c.getAttribute('data-icon') || c.querySelector('.card-icon').textContent || '📦'; titles[c.id] = { title: title, desc: desc, color: color, icon: icon }; }); localStorage.setItem('gta5-card-titles', JSON.stringify(titles)); }
+        function loadCardTitles() { try { var titles = JSON.parse(localStorage.getItem('gta5-card-titles') || '{}'); Object.keys(titles).forEach(function(id) { var c = document.getElementById(id); if(c) { c.setAttribute('data-title', titles[id].title); c.setAttribute('data-desc', titles[id].desc); if(titles[id].color) c.setAttribute('data-color', titles[id].color); if(titles[id].icon) { c.setAttribute('data-icon', titles[id].icon); var iconSpan = c.querySelector('.card-icon'); if(iconSpan) iconSpan.textContent = titles[id].icon; icons[id] = titles[id].icon; } if(c.querySelector('.card-title')) c.querySelector('.card-title').textContent = titles[id].title; if(c.querySelector('.sub-title .sub-text')) c.querySelector('.sub-title .sub-text').textContent = titles[id].desc; if(titles[id].color) c.style.borderTopColor = titles[id].color; // Восстанавливаем обработчик клика на эмодзи
+                var iconSpan = c.querySelector('.card-icon');
+                if (iconSpan && !iconSpan.hasClickListener) {
+                    iconSpan.style.cursor = 'pointer';
+                    iconSpan.onclick = (function(cardId) {
+                        return function(e) {
+                            e.stopPropagation();
+                            showEmojiPicker(this, cardId);
+                        };
+                    })(id);
+                    iconSpan.hasClickListener = true;
+                }
+            } }); } catch(e) { console.warn(e); } }
+        
+        function createCustomTimerDOM(id, name) { var c = document.createElement('div'); c.className = 'card custom'; c.id = 'card-' + id; c.setAttribute('draggable', 'true'); c.dataset.title = name; c.dataset.desc = 'Пользовательский'; c.dataset.color = '#2196f3'; c.dataset.icon = '⏱️'; c.style.borderTopColor = '#2196f3'; c.innerHTML = '<div class="card-header"><div class="card-icon">⏱️</div><div class="card-title-wrap"><div class="card-title">' + name + '</div></div><div class="card-actions-wrap"><button class="btn-kebab" onclick="toggleMenu(\'' + id + '\')">⋮</button><div class="dropdown-menu" id="menu-' + id + '"><button onclick="renameCard(\'' + id + '\')">✏️ Изменить название</button><button onclick="editSubTitle(\'' + id + '\')">📝 Изменить комментарий</button><button onclick="editTimer(\'' + id + '\')">⏱ Изменить время</button><div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div><div class="color-palette" id="palette-' + id + '"></div><button class="delete-opt" onclick="deleteTimer(\'' + id + '\')">🗑️ Удалить таймер</button></div></div></div><div class="timer-block" id="' + id + '"><div class="sub-title"><span class="sub-text">Пользовательский</span></div><div class="timer-display"><div class="timer-value idle" id="' + id + '-time">00:00:00</div><div class="status-badge ready" id="' + id + '-status">Готов</div></div><div class="progress-bar-container"><div class="progress-bar cyan" id="' + id + '-bar"></div></div><div class="btn-group-horizontal"><button class="btn-icon btn-start-icon" onclick="startTimer(\'' + id + '\')">▶</button><button class="btn-icon btn-pause-icon" onclick="pauseTimer(\'' + id + '\')">⏸</button><button class="btn-icon btn-reset-icon" onclick="resetTimer(\'' + id + '\')">↺</button></div></div>'; 
             grid.appendChild(c); 
-        }
-
-        function handleAddCustom() { 
-            var nI = document.getElementById('custom-name');
-            var mI = document.getElementById('custom-min');
-            var nm = nI.value.trim() || 'Таймер ' + (customCounter + 1);
-            var mn = parseInt(mI.value); 
-            if(!mn || mn <= 0) {
-                showNotification('⚠️ Укажите минуты', 'warning');
-                return;
+            // Добавляем обработчик для эмодзи пользовательского таймера
+            var iconSpan = c.querySelector('.card-icon');
+            if (iconSpan) {
+                iconSpan.style.cursor = 'pointer';
+                iconSpan.onclick = (function(cardId) {
+                    return function(e) {
+                        e.stopPropagation();
+                        showEmojiPicker(this, cardId);
+                    };
+                })(id);
+                iconSpan.hasClickListener = true;
             }
-            customCounter++; 
-            var id = 'custom-' + customCounter; 
-            var dur = mn * 60; 
-            timers[id] = { remaining: dur, total: dur, running: false, intervalId: null, finished: false, label: nm }; 
-            createCustomTimerDOM(id, nm); 
-            updateDisplay(id); 
-            nI.value = ''; 
-            mI.value = ''; 
-            saveState(); 
-            showNotification('✅ Добавлен: ' + nm, 'success'); 
+            icons[id] = '⏱️';
         }
-
-        function resetToDefaults() { 
-            if(!confirm('Сбросить ВСЕ таймеры к исходным?')) return; 
-            Object.values(timers).forEach(function(t) { 
-                if(t.intervalId) clearInterval(t.intervalId); 
-            }); 
-            for(var k in timers) delete timers[k]; 
-            customCounter = 0; 
-            initApp(); 
-            localStorage.removeItem('gta5-card-titles'); 
-            saveState(); 
-            showNotification('🔹 Настройки сброшены', 'info'); 
+        function handleAddCustom() { var nI = document.getElementById('custom-name'); var mI = document.getElementById('custom-min'); var nm = nI.value.trim() || 'Таймер ' + (customCounter + 1); var mn = parseInt(mI.value); if(!mn || mn <= 0) { showNotification('⚠️ Укажите минуты', 'warning'); return; } customCounter++; var id = 'custom-' + customCounter; var dur = mn * 60; timers[id] = { remaining: dur, total: dur, running: false, intervalId: null, finished: false, label: nm }; createCustomTimerDOM(id, nm); updateDisplay(id); nI.value = ''; mI.value = ''; saveState(); showNotification('✅ Добавлен: ' + nm, 'success'); }
+        
+        function getFullBackupData() {
+            var b = { version: "0.1.4", appVersion: "0.1.4", date: new Date().toISOString(), timers: {}, customMeta: [], customCounter: customCounter, titles: {}, order: [], deletedBuiltIn: deletedBuiltIn, icons: icons };
+            Object.keys(timers).forEach(function(id) {
+                var t = timers[id];
+                b.timers[id] = { remaining: t.remaining, total: t.total, running: t.running, finished: t.finished, label: t.label };
+                if(id.startsWith('custom-')) b.customMeta.push({ id: id, name: t.label, duration: t.total });
+            });
+            document.querySelectorAll('#main-grid .card').forEach(function(c) { b.order.push(c.id); });
+            document.querySelectorAll('#main-grid .card').forEach(function(c) {
+                var descEl = c.querySelector('.sub-title .sub-text');
+                var icon = c.getAttribute('data-icon') || c.querySelector('.card-icon').textContent || '📦';
+                b.titles[c.id] = { title: c.dataset.title || c.querySelector('.card-title').textContent, desc: descEl ? descEl.textContent : '', color: c.dataset.color || '#ffb300', icon: icon };
+            });
+            return b;
         }
-
-        function getFullBackupData() { 
-            var b = { 
-                version: 'gta-timers-v6', 
-                date: new Date().toISOString(), 
-                timers: {}, 
-                customMeta: [], 
-                customCounter: customCounter, 
-                titles: {} 
-            }; 
-            Object.keys(timers).forEach(function(id) { 
-                var t = timers[id]; 
-                b.timers[id] = { 
-                    remaining: t.remaining, 
-                    total: t.total, 
-                    running: t.running, 
-                    finished: t.finished, 
-                    label: t.label 
-                }; 
-                if(id.startsWith('custom-')) {
-                    b.customMeta.push({ id: id, name: t.label, duration: t.total });
-                }
-            }); 
-            document.querySelectorAll('#main-grid .card').forEach(function(c) { 
-                var descEl = c.querySelector('.sub-title .sub-text'); 
-                b.titles[c.id] = { 
-                    title: c.dataset.title || c.querySelector('.card-title').textContent, 
-                    desc: descEl ? descEl.textContent : '',
-                    color: c.dataset.color || '#ffb300'
-                }; 
-            }); 
-            return b; 
+        
+        function exportSettings() {
+            try {
+                var d = getFullBackupData();
+                var j = JSON.stringify(d, null, 2);
+                var b = new Blob([j], { type: 'application/json' });
+                var u = URL.createObjectURL(b);
+                var a = document.createElement('a');
+                var versionForFilename = "0_1_4beta";
+                var now = new Date();
+                var day = String(now.getDate()).padStart(2, '0');
+                var month = String(now.getMonth() + 1).padStart(2, '0');
+                var year = now.getFullYear();
+                var hours = String(now.getHours()).padStart(2, '0');
+                var minutes = String(now.getMinutes()).padStart(2, '0');
+                var dateTimeStr = day + month + year + hours + minutes;
+                var filename = 'gtaOnlineTimersConfig ' + versionForFilename + ' ' + dateTimeStr + '.json';
+                a.href = u;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(u);
+                showNotification('⬇️ Экспорт выполнен: ' + filename, 'success');
+            } catch(e) { showNotification('❌ Ошибка экспорта', 'warning'); }
         }
-        function exportSettings() { 
-            try { 
-                var d = getFullBackupData(); 
-                var j = JSON.stringify(d, null, 2); 
-                var b = new Blob([j], { type: 'application/json' }); 
-                var u = URL.createObjectURL(b); 
-                var a = document.createElement('a'); 
-                a.href = u; 
-                a.download = 'gta-timers-' + new Date().toISOString().slice(0,10) + '.json'; 
-                document.body.appendChild(a); 
-                a.click(); 
-                document.body.removeChild(a); 
-                URL.revokeObjectURL(u); 
-                showNotification('⬇️ Сохранено', 'success'); 
-            } catch(e) { 
-                showNotification('❌ Ошибка', 'warning'); 
-            } 
-        }
-        function importSettings(ev) { 
-            var f = ev.target.files[0]; 
-            if(!f) return; 
-            var r = new FileReader(); 
-            r.onload = function(e) { 
-                try { 
-                    var d = JSON.parse(e.target.result); 
-                    if(!d.version || !d.timers) { 
-                        showNotification('❌ Неверный файл', 'warning'); 
-                        return; 
+        
+        function importSettings(ev) {
+            var f = ev.target.files[0];
+            if(!f) return;
+            var r = new FileReader();
+            r.onload = function(e) {
+                try {
+                    var rawData = JSON.parse(e.target.result);
+                    var fileVersion = rawData.version || rawData.appVersion || "0.0.0";
+                    var isConverted = false;
+                    var data = rawData;
+                    
+                    if (compareVersions(fileVersion, "0.1.4") < 0) {
+                        data = convertOldConfig(rawData);
+                        isConverted = true;
+                        showNotification('⚠️ Файл версии ' + fileVersion + ' сконвертирован в формат 0.1.4', 'warning');
+                    } else if (compareVersions(fileVersion, "0.1.4") > 0) {
+                        if(!confirm('Файл создан более новой версией (' + fileVersion + ')\nТекущая версия: 0.1.4\nВозможна несовместимость. Продолжить загрузку?')) {
+                            ev.target.value = '';
+                            return;
+                        }
+                        data = rawData;
+                        showNotification('⚠️ Загрузка файла более новой версии, возможны проблемы', 'warning');
+                    } else {
+                        data = rawData;
                     }
-                    if(!confirm('Загрузить настройки?\nДата: ' + (d.date || '?') + '\nТекущие будут заменены.')) { 
-                        ev.target.value = ''; 
-                        return; 
-                    }
-                    Object.values(timers).forEach(function(t) { 
-                        if(t.intervalId) clearInterval(t.intervalId); 
-                    }); 
-                    for(var k in timers) delete timers[k]; 
-                    customCounter = 0; 
-                    grid.innerHTML = ''; 
+                    
+                    if(!data.timers) { showNotification('❌ Неверный файл', 'warning'); return; }
+                    if(!confirm('Загрузить настройки?\nДата: ' + (data.date || '?') + '\nВерсия файла: ' + (data.version || data.appVersion || 'unknown') + '\nТекущие будут заменены.')) { ev.target.value = ''; return; }
+                    
+                    Object.values(timers).forEach(function(t) { if(t.intervalId) clearInterval(t.intervalId); });
+                    for(var k in timers) delete timers[k];
+                    customCounter = 0;
+                    deletedBuiltIn = data.deletedBuiltIn || [];
+                    icons = data.icons || {};
+                    grid.innerHTML = '';
                     var template = document.getElementById('default-layout');
                     grid.appendChild(template.content.cloneNode(true));
-                    Object.keys(defaultTimers).forEach(function(id) { 
-                        timers[id] = { 
-                            remaining: defaultTimers[id].duration, 
-                            total: defaultTimers[id].duration, 
-                            running: false, 
-                            intervalId: null, 
-                            finished: false, 
-                            label: defaultTimers[id].label 
-                        }; 
-                        updateDisplay(id); 
-                    }); 
-                    if(d.customMeta && d.customMeta.length > 0) { 
-                        var mx = 0; 
-                        d.customMeta.forEach(function(m) { 
-                            createCustomTimerDOM(m.id, m.name); 
-                            timers[m.id] = { 
-                                remaining: 0, 
-                                total: m.duration, 
-                                running: false, 
-                                intervalId: null, 
-                                finished: false, 
-                                label: m.name 
-                            }; 
-                            var n = parseInt(m.id.replace('custom-', '')); 
-                            if(n > mx) mx = n; 
-                        }); 
-                        customCounter = mx; 
+                    
+                    for(var i = 0; i < deletedBuiltIn.length; i++) {
+                        var cardToRemove = document.getElementById('card-' + deletedBuiltIn[i]);
+                        if(cardToRemove) cardToRemove.remove();
                     }
-                    if(d.customCounter) customCounter = d.customCounter; 
-                    Object.keys(d.timers).forEach(function(id) { 
-                        if(timers[id]) { 
-                            var s = d.timers[id]; 
-                            timers[id].remaining = s.remaining; 
-                            timers[id].total = s.total || timers[id].total; 
-                            timers[id].finished = s.finished || false; 
-                            timers[id].running = false; 
-                            timers[id].label = s.label || timers[id].label; 
-                            updateDisplay(id); 
-                        } 
-                    }); 
-                    if(d.titles) { 
-                        Object.keys(d.titles).forEach(function(id) { 
-                            var c = document.getElementById(id); 
-                            if(c) { 
-                                c.dataset.title = d.titles[id].title; 
-                                c.dataset.desc = d.titles[id].desc; 
-                                if(d.titles[id].color) {
-                                    c.dataset.color = d.titles[id].color;
-                                    c.style.borderTopColor = d.titles[id].color;
+                    
+                    Object.keys(defaultTimers).forEach(function(id) {
+                        if(deletedBuiltIn.indexOf(id) !== -1) return;
+                        timers[id] = { remaining: defaultTimers[id].duration, total: defaultTimers[id].duration, running: false, intervalId: null, finished: false, label: defaultTimers[id].label };
+                        updateDisplay(id);
+                    });
+                    
+                    if(data.customMeta && data.customMeta.length > 0) {
+                        var mx = 0;
+                        data.customMeta.forEach(function(m) {
+                            createCustomTimerDOM(m.id, m.name);
+                            timers[m.id] = { remaining: 0, total: m.duration, running: false, intervalId: null, finished: false, label: m.name };
+                            var n = parseInt(m.id.replace('custom-', '')); if(n > mx) mx = n;
+                        });
+                        customCounter = mx;
+                    }
+                    if(data.customCounter) customCounter = data.customCounter;
+                    
+                    Object.keys(data.timers).forEach(function(id) {
+                        if(timers[id]) {
+                            var s = data.timers[id];
+                            timers[id].remaining = s.remaining;
+                            timers[id].total = s.total || timers[id].total;
+                            timers[id].finished = s.finished || false;
+                            timers[id].running = false;
+                            timers[id].label = s.label || timers[id].label;
+                            updateDisplay(id);
+                        }
+                    });
+                    
+                    if(data.order && data.order.length) {
+                        var cardsMap = {};
+                        grid.querySelectorAll('.card').forEach(function(card) { cardsMap[card.id] = card; });
+                        data.order.forEach(function(cardId) {
+                            if(cardsMap[cardId]) grid.appendChild(cardsMap[cardId]);
+                        });
+                    }
+                    
+                    if(data.titles) {
+                        Object.keys(data.titles).forEach(function(id) {
+                            var c = document.getElementById(id);
+                            if(c) {
+                                c.dataset.title = data.titles[id].title;
+                                c.dataset.desc = data.titles[id].desc;
+                                if(data.titles[id].color) { c.dataset.color = data.titles[id].color; c.style.borderTopColor = data.titles[id].color; }
+                                if(data.titles[id].icon) { 
+                                    c.dataset.icon = data.titles[id].icon; 
+                                    var iconSpan = c.querySelector('.card-icon');
+                                    if(iconSpan) iconSpan.textContent = data.titles[id].icon;
+                                    icons[id] = data.titles[id].icon;
                                 }
-                                if(c.querySelector('.card-title')) c.querySelector('.card-title').textContent = d.titles[id].title; 
-                                var descEl = c.querySelector('.sub-title .sub-text'); 
-                                if(descEl) descEl.textContent = d.titles[id].desc; 
-                            } 
-                        }); 
-                        loadCardTitles(); 
+                                if(c.querySelector('.card-title')) c.querySelector('.card-title').textContent = data.titles[id].title;
+                                var descEl = c.querySelector('.sub-title .sub-text');
+                                if(descEl) descEl.textContent = data.titles[id].desc;
+                                // Восстанавливаем обработчик для эмодзи
+                                var iconSpan = c.querySelector('.card-icon');
+                                if (iconSpan && !iconSpan.hasClickListener) {
+                                    iconSpan.style.cursor = 'pointer';
+                                    iconSpan.onclick = (function(cardId) {
+                                        return function(e) {
+                                            e.stopPropagation();
+                                            showEmojiPicker(this, cardId);
+                                        };
+                                    })(id);
+                                    iconSpan.hasClickListener = true;
+                                }
+                            }
+                        });
+                        loadCardTitles();
                     }
-                    saveState(); 
-                    showNotification('✅ Импортировано', 'success'); 
+                    
+                    initDragAndDrop();
+                    saveState();
+                    if (isConverted) {
+                        showNotification('✅ Импорт выполнен (файл сконвертирован из старой версии)', 'success');
+                    } else {
+                        showNotification('✅ Импорт выполнен', 'success');
+                    }
                 } catch(err) { 
-                    showNotification('❌ Ошибка чтения', 'warning'); 
-                } 
-            }; 
-            r.readAsText(f); 
-            ev.target.value = ''; 
+                    showNotification('❌ Ошибка чтения файла: ' + err.message, 'warning'); 
+                }
+            };
+            r.readAsText(f);
+            ev.target.value = '';
         }
+        
+        function toggleMute() { isMuted = !isMuted; var b = document.getElementById('alarmBtn'); b.textContent = isMuted ? '🔇' : '🔔'; b.classList.toggle('muted', isMuted); }
+        function updateDisplay(id) { var t = timers[id]; if(!t) return; var te = document.getElementById(id + '-time'); var se = document.getElementById(id + '-status'); var be = document.getElementById(id + '-bar'); if(!te) return; te.textContent = formatTime(t.remaining); be.style.width = (((t.total - t.remaining) / t.total) * 100) + '%'; te.classList.remove('idle', 'running', 'warning', 'finished'); if(t.finished) { te.classList.add('finished'); se.textContent = '⏰ Время вышло'; se.className = 'status-badge finished'; be.style.width = '100%'; } else if(t.running) { te.classList.add(t.remaining / t.total <= 0.25 ? 'warning' : 'running'); se.textContent = 'В процессе'; se.className = 'status-badge running'; } else { te.classList.add('idle'); se.textContent = t.remaining < t.total ? '⏸ Пауза' : '✅ Готов'; se.className = t.remaining < t.total ? 'status-badge paused' : 'status-badge ready'; } }
+        function formatTime(s) { var h = Math.floor(s / 3600); var m = Math.floor((s % 3600) / 60); var sec = s % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0'); }
+        function onTimerComplete(id) { playAlarm(); showNotification('⏰ ' + (timers[id].label || 'Таймер') + ' — готово!', 'warning'); }
+        function showNotification(t, tp) { if(tp === undefined) tp = 'success'; var el = document.getElementById('notification'); el.textContent = t; el.className = 'notification ' + tp; requestAnimationFrame(function() { el.classList.add('show'); }); setTimeout(function() { el.classList.remove('show'); }, 3500); }
+        function playAlarm() { if(isMuted) return; try { var c = new (window.AudioContext || window.webkitAudioContext)(); var n = c.currentTime; [880, 880, 1100].forEach(function(f, i) { var o = c.createOscillator(); var g = c.createGain(); o.connect(g); g.connect(c.destination); o.frequency.value = f; o.type = 'sine'; g.gain.setValueAtTime(0.3, n + i * 0.2); g.gain.exponentialRampToValueAtTime(0.001, n + i * 0.2 + 0.15); o.start(n + i * 0.2); o.stop(n + i * 0.2 + 0.15); }); } catch(e) {} }
+        function saveState() { var s = { timers: {}, customMeta: [], customCounter: customCounter, deletedBuiltIn: deletedBuiltIn, icons: icons }; Object.keys(timers).forEach(function(id) { var t = timers[id]; s.timers[id] = { remaining: t.remaining, total: t.total, running: t.running, finished: t.finished, timestamp: Date.now(), label: t.label }; if(id.startsWith('custom-')) s.customMeta.push({ id: id, name: t.label, duration: t.total }); }); localStorage.setItem('gta5-timers-v37', JSON.stringify(s)); }
+        function loadState() { try { var sv = localStorage.getItem('gta5-timers-v37'); if(!sv) return; var st = JSON.parse(sv); var now = Date.now(); deletedBuiltIn = st.deletedBuiltIn || []; icons = st.icons || {}; if(st.customMeta && st.customMeta.length > 0) { var mx = 0; st.customMeta.forEach(function(m) { if(!document.getElementById('card-' + m.id)) { createCustomTimerDOM(m.id, m.name); timers[m.id] = { remaining: 0, total: m.duration, running: false, intervalId: null, finished: false, label: m.name }; var n = parseInt(m.id.replace('custom-', '')); if(n > mx) mx = n; } }); customCounter = mx || customCounter; } if(st.customCounter) customCounter = st.customCounter; if(st.timers) { Object.keys(st.timers).forEach(function(id) { if(timers[id] && deletedBuiltIn.indexOf(id) === -1) { var s = st.timers[id]; var el = Math.max(0, Math.floor((now - s.timestamp) / 1000)); var cr = s.remaining - el; if(s.running === true) { if(cr <= 0) { timers[id].remaining = 0; timers[id].finished = true; timers[id].running = false; onTimerComplete(id); updateDisplay(id); } else { timers[id].remaining = cr; timers[id].finished = false; startTimer(id); } } else { timers[id].remaining = s.remaining; if(s.finished) { timers[id].finished = true; updateDisplay(id); } else { timers[id].finished = false; updateDisplay(id); } } } }); } loadCardTitles(); } catch(e) { console.warn(e); } }
 
-        function toggleMute() { 
-            isMuted = !isMuted; 
-            var b = document.getElementById('alarmBtn'); 
-            b.textContent = isMuted ? '🔇' : '🔔'; 
-            b.classList.toggle('muted', isMuted); 
-        }
-        function updateDisplay(id) { 
-            var t = timers[id]; 
-            if(!t) return; 
-            var te = document.getElementById(id + '-time');
-            var se = document.getElementById(id + '-status');
-            var be = document.getElementById(id + '-bar');
-            if(!te) return; 
-            te.textContent = formatTime(t.remaining); 
-            be.style.width = (((t.total - t.remaining) / t.total) * 100) + '%'; 
-            te.classList.remove('idle', 'running', 'warning', 'finished'); 
-            if(t.finished) { 
-                te.classList.add('finished'); 
-                se.textContent = '⏰ Время вышло'; 
-                se.className = 'status-badge finished'; 
-                be.style.width = '100%'; 
-            } else if(t.running) { 
-                te.classList.add(t.remaining / t.total <= 0.25 ? 'warning' : 'running'); 
-                se.textContent = 'В процессе'; 
-                se.className = 'status-badge running'; 
-            } else { 
-                te.classList.add('idle'); 
-                se.textContent = t.remaining < t.total ? '⏸ Пауза' : '✅ Готов'; 
-                se.className = t.remaining < t.total ? 'status-badge paused' : 'status-badge ready'; 
-            } 
-        }
-        function formatTime(s) { 
-            var h = Math.floor(s / 3600);
-            var m = Math.floor((s % 3600) / 60);
-            var sec = s % 60;
-            return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
-        }
-        function onTimerComplete(id) { 
-            playAlarm(); 
-            showNotification('⏰ ' + (timers[id].label || 'Таймер') + ' — готово!', 'warning'); 
-        }
-        function showNotification(t, tp) { 
-            if(tp === undefined) tp = 'success';
-            var el = document.getElementById('notification'); 
-            el.textContent = t; 
-            el.className = 'notification ' + tp; 
-            requestAnimationFrame(function() { el.classList.add('show'); });
-            setTimeout(function() { el.classList.remove('show'); }, 3500); 
-        }
-        function playAlarm() { 
-            if(isMuted) return; 
-            try { 
-                var c = new (window.AudioContext || window.webkitAudioContext)();
-                var n = c.currentTime; 
-                [880, 880, 1100].forEach(function(f, i) { 
-                    var o = c.createOscillator();
-                    var g = c.createGain();
-                    o.connect(g); 
-                    g.connect(c.destination); 
-                    o.frequency.value = f; 
-                    o.type = 'sine'; 
-                    g.gain.setValueAtTime(0.3, n + i * 0.2); 
-                    g.gain.exponentialRampToValueAtTime(0.001, n + i * 0.2 + 0.15); 
-                    o.start(n + i * 0.2); 
-                    o.stop(n + i * 0.2 + 0.15); 
-                }); 
-            } catch(e) {} 
-        }
-        function saveState() { 
-            var s = { timers: {}, customMeta: [], customCounter: customCounter }; 
-            Object.keys(timers).forEach(function(id) { 
-                var t = timers[id]; 
-                s.timers[id] = { 
-                    remaining: t.remaining, 
-                    total: t.total, 
-                    running: t.running, 
-                    finished: t.finished, 
-                    timestamp: Date.now(), 
-                    label: t.label 
-                }; 
-                if(id.startsWith('custom-')) {
-                    s.customMeta.push({ id: id, name: t.label, duration: t.total });
-                }
-            }); 
-            localStorage.setItem('gta5-timers-v29', JSON.stringify(s)); 
-        }
-        function loadState() { 
-            try { 
-                var sv = localStorage.getItem('gta5-timers-v29'); 
-                if(!sv) return; 
-                var st = JSON.parse(sv); 
-                var now = Date.now(); 
-                if(st.customMeta && st.customMeta.length > 0) { 
-                    var mx = 0; 
-                    st.customMeta.forEach(function(m) { 
-                        if(!document.getElementById('card-' + m.id)) { 
-                            createCustomTimerDOM(m.id, m.name); 
-                            timers[m.id] = { 
-                                remaining: 0, 
-                                total: m.duration, 
-                                running: false, 
-                                intervalId: null, 
-                                finished: false, 
-                                label: m.name 
-                            }; 
-                            var n = parseInt(m.id.replace('custom-', '')); 
-                            if(n > mx) mx = n; 
-                        } 
-                    }); 
-                    customCounter = mx || customCounter; 
-                }
-                if(st.customCounter) customCounter = st.customCounter; 
-                if(st.timers) { 
-                    Object.keys(st.timers).forEach(function(id) { 
-                        if(timers[id]) { 
-                            var s = st.timers[id]; 
-                            var el = Math.max(0, Math.floor((now - s.timestamp) / 1000)); 
-                            var cr = s.remaining - el; 
-                            if(s.running === true) { 
-                                if(cr <= 0) { 
-                                    timers[id].remaining = 0; 
-                                    timers[id].finished = true; 
-                                    timers[id].running = false; 
-                                    onTimerComplete(id); 
-                                    updateDisplay(id); 
-                                } else { 
-                                    timers[id].remaining = cr; 
-                                    timers[id].finished = false; 
-                                    startTimer(id); 
-                                } 
-                            } else { 
-                                timers[id].remaining = s.remaining; 
-                                if(s.finished) { 
-                                    timers[id].finished = true; 
-                                    updateDisplay(id); 
-                                } else { 
-                                    timers[id].finished = false; 
-                                    updateDisplay(id); 
-                                } 
-                            } 
-                        } 
-                    }); 
-                }
-                loadCardTitles(); 
-            } catch(e) { 
-                console.warn('Ошибка загрузки:', e); 
-            } 
-        }
-
-        initApp(); 
-        setInterval(function() { saveState(); saveCardTitles(); }, 2000); 
-        window.addEventListener('beforeunload', function() { 
-            saveState(); 
-            saveCardTitles(); 
-        });
+        initApp(true);
+        setInterval(function() { saveState(); saveCardTitles(); }, 2000);
+        window.addEventListener('beforeunload', function() { saveState(); saveCardTitles(); });
+        document.getElementById('versionLabel').addEventListener('click', showChangelog);
     </script>
 </body>
 </html>
