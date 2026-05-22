@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>GTA Online — Таймеры производств</title>
     <!-- Favicon: песочные часы в стиле GTA -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='15' fill='%23151515'/%3E%3Crect x='15' y='10' width='70' height='12' rx='3' fill='%23ffb300'/%3E%3Crect x='15' y='78' width='70' height='12' rx='3' fill='%23ffb300'/%3E%3Cpath d='M30 22 L70 22 L55 50 L70 78 L30 78 L45 50 Z' fill='%23ffb300'/%3E%3Ccircle cx='50' cy='50' r='14' fill='%23151515'/%3E%3C/svg%3E">
@@ -75,6 +75,7 @@
             user-select: none; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             position: relative; 
+            touch-action: none; /* для мобильного перетаскивания */
         }
         .card:active { cursor: grabbing; }
         .card:hover { background: var(--bg-card-hover); border-color: #333; }
@@ -83,6 +84,8 @@
         .card.dragging { 
             opacity: 0.5; 
             border: 2px dashed var(--gta-yellow); 
+            cursor: grabbing;
+            z-index: 1000;
         }
 
         .card.drag-left {
@@ -457,7 +460,7 @@
     </div>
 
     <div class="version-wrapper">
-        <div class="version-label" id="versionLabel">v0.1.5 beta</div>
+        <div class="version-label" id="versionLabel">v0.1.6 beta</div>
         <a href="https://github.com/uglovevgenij/gtaOnlineTimer" target="_blank" class="github-link" id="githubLink">🐙 GitHub</a>
     </div>
     <input type="file" id="file-import" accept=".json" onchange="importSettings(event)">
@@ -476,7 +479,7 @@
                     <li><span>▶ Старт / ⏸ Пауза / ↺ Сброс</span> — иконки внизу карточки.</li>
                     <li><span>⋮ Меню карточки</span> — все настройки: название, комментарий, время, цвет, удаление.</li>
                     <li><span>🎨 Палитра цветов</span> — 10 цветов среднего тона.</li>
-                    <li><span>🖱 Перетаскивание</span> — левая половина → вставка слева, правая → справа.</li>
+                    <li><span>🖱 Перетаскивание</span> — левая половина → вставка слева, правая → справа. Работает как на ПК, так и на мобильных устройствах.</li>
                     <li><span>😀 Эмодзи</span> — кликните на иконку слева от названия, чтобы выбрать другой из 25 вариантов.</li>
                 </ul>
                 <h3>⚡ Глобальные кнопки</h3>
@@ -523,6 +526,7 @@
         
         // История версий
         var changelog = [
+            { version: "0.1.6 beta", date: "2025-05-22", changes: ["🐛 Исправлено мерцание и скачки зелёной полоски при перетаскивании в многострочной сетке.", "📱 Улучшена логика определения целевой позиции для вставки (горизонталь + вертикаль)."] },
             { version: "0.1.5 beta", date: "2025-05-22", changes: ["🐙 Кнопка «Check updates» переименована в «GitHub» с эмодзи осьминога.", "🖼️ Добавлена иконка вкладки (favicon) — стилизованные песочные часы в стиле GTA."] },
             { version: "0.1.4 beta", date: "2025-05-22", changes: ["😀 Добавлена возможность менять эмодзи у таймеров (клик на иконку слева от названия).", "🎨 Палитра из 25 эмодзи на выбор. Выбор сохраняется в настройках."] },
             { version: "0.1.3 beta", date: "2025-05-22", changes: ["🔤 Шрифт заголовков и кнопок заменён на PT Sans для лучшей поддержки кириллицы."] },
@@ -616,13 +620,19 @@
         var currentDropTarget = null;
         var currentDropSide = null;
         var activeEmojiPicker = null;
+        
+        // Переменные для мобильного touch drag
+        var touchDragActive = false;
+        var touchStartX = 0, touchStartY = 0;
+        var touchDragCard = null;
+        var touchPlaceholder = null;
+        var touchLastTarget = null;
 
         function toggleModal() { document.getElementById('modalOverlay').classList.toggle('active'); }
         function handleOverlayClick(e) { if(e.target === e.currentTarget) toggleModal(); }
 
         // Функция для открытия выбора эмодзи
         function showEmojiPicker(iconElement, cardId) {
-            // Закрываем предыдущий пикер
             if (activeEmojiPicker) {
                 activeEmojiPicker.remove();
                 activeEmojiPicker = null;
@@ -638,10 +648,8 @@
                 option.textContent = emoji;
                 option.onclick = (function(e, card, em) {
                     return function() {
-                        // Меняем эмодзи
                         iconElement.textContent = em;
                         icons[card] = em;
-                        // Обновляем data-icon у карточки
                         var cardDiv = document.getElementById('card-' + card);
                         if (cardDiv) cardDiv.setAttribute('data-icon', em);
                         saveState();
@@ -656,7 +664,6 @@
                 picker.appendChild(option);
             }
             
-            // Позиционируем пикер
             var rect = iconElement.getBoundingClientRect();
             picker.style.position = 'fixed';
             picker.style.left = rect.left + 'px';
@@ -665,7 +672,6 @@
             document.body.appendChild(picker);
             activeEmojiPicker = picker;
             
-            // Закрываем при клике вне
             setTimeout(function() {
                 document.addEventListener('click', function closePicker(e) {
                     if (activeEmojiPicker && !activeEmojiPicker.contains(e.target) && e.target !== iconElement) {
@@ -729,29 +735,84 @@
             }
         });
 
-        // Drag & Drop
+        // Улучшенная функция определения целевой позиции (без скачков)
         function getDropTargetAndSide(container, x, y) {
             var cards = Array.from(container.querySelectorAll('.card:not(.dragging)'));
             if (cards.length === 0) return null;
+            
+            // Сначала найдём все строки (по Y координате с группировкой)
+            var rows = [];
             for (var i = 0; i < cards.length; i++) {
                 var rect = cards[i].getBoundingClientRect();
-                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-                    if (x < rect.left + rect.width / 2) return { target: cards[i], side: 'left' };
-                    else return { target: cards[i], side: 'right' };
-                }
-            }
-            for (var i = 0; i < cards.length; i++) {
-                var rect = cards[i].getBoundingClientRect();
-                var nextCard = cards[i+1];
-                if (nextCard) {
-                    var nextRect = nextCard.getBoundingClientRect();
-                    if (nextRect.top === rect.top && x > rect.right && x < nextRect.left) {
-                        return { target: cards[i], side: 'right' };
+                var foundRow = false;
+                for (var r = 0; r < rows.length; r++) {
+                    if (Math.abs(rows[r].y - rect.top) < 30) {
+                        rows[r].cards.push(cards[i]);
+                        rows[r].y = Math.min(rows[r].y, rect.top);
+                        foundRow = true;
+                        break;
                     }
-                } else {
-                    if (x > rect.right) return { target: cards[i], side: 'right' };
+                }
+                if (!foundRow) {
+                    rows.push({ y: rect.top, cards: [cards[i]] });
                 }
             }
+            // Сортируем строки по Y
+            rows.sort(function(a, b) { return a.y - b.y; });
+            
+            // Определяем, в какой строке находится курсор
+            var targetRow = null;
+            for (var r = 0; r < rows.length; r++) {
+                var rowCards = rows[r].cards;
+                if (rowCards.length === 0) continue;
+                var firstRect = rowCards[0].getBoundingClientRect();
+                var lastRect = rowCards[rowCards.length - 1].getBoundingClientRect();
+                if (y >= firstRect.top - 20 && y <= lastRect.bottom + 20) {
+                    targetRow = rows[r];
+                    break;
+                }
+            }
+            
+            if (!targetRow) {
+                // Курсор ниже всех строк — в конец последней строки
+                if (rows.length > 0) {
+                    var lastRowCards = rows[rows.length - 1].cards;
+                    var lastCard = lastRowCards[lastRowCards.length - 1];
+                    return { target: lastCard, side: 'right' };
+                }
+                return null;
+            }
+            
+            // Внутри строки — ищем по горизонтали
+            var rowCards = targetRow.cards;
+            for (var i = 0; i < rowCards.length; i++) {
+                var rect = rowCards[i].getBoundingClientRect();
+                // Курсор внутри карточки
+                if (x >= rect.left && x <= rect.right) {
+                    if (x < rect.left + rect.width / 2) return { target: rowCards[i], side: 'left' };
+                    else return { target: rowCards[i], side: 'right' };
+                }
+                // Курсор между текущей и следующей карточкой
+                if (i + 1 < rowCards.length) {
+                    var nextRect = rowCards[i + 1].getBoundingClientRect();
+                    if (x > rect.right && x < nextRect.left) {
+                        return { target: rowCards[i], side: 'right' };
+                    }
+                }
+            }
+            // Курсор правее всех карточек в строке — вставка после последней
+            if (rowCards.length > 0) {
+                var lastRect = rowCards[rowCards.length - 1].getBoundingClientRect();
+                if (x > lastRect.right) {
+                    return { target: rowCards[rowCards.length - 1], side: 'right' };
+                }
+                // Курсор левее всех карточек в строке — вставка перед первой
+                var firstRect = rowCards[0].getBoundingClientRect();
+                if (x < firstRect.left) {
+                    return { target: rowCards[0], side: 'left' };
+                }
+            }
+            
             return null;
         }
 
@@ -777,6 +838,7 @@
             grid.parentNode.replaceChild(newGrid, grid);
             grid = newGrid;
 
+            // Drag & Drop для мыши
             grid.addEventListener('dragstart', function(e) {
                 var card = e.target.closest('.card');
                 if (!card) return;
@@ -819,6 +881,92 @@
             });
             grid.addEventListener('dragenter', function(e) { e.preventDefault(); });
             grid.addEventListener('dragexit', function(e) { e.preventDefault(); });
+            
+            // Touch Drag для мобильных устройств (с использованием улучшенной логики)
+            function createTouchPlaceholder() {
+                var ph = document.createElement('div');
+                ph.className = 'card placeholder';
+                ph.style.cssText = 'background: rgba(255,179,0,0.1); border: 2px dashed var(--gta-yellow); opacity: 0.6; min-height: 140px; flex: 0 0 300px; max-width: 300px; margin: 0; cursor: grabbing;';
+                return ph;
+            }
+            
+            function getTouchDropTarget(container, x, y) {
+                return getDropTargetAndSide(container, x, y);
+            }
+            
+            function onTouchStart(e) {
+                var card = e.target.closest('.card');
+                if (!card) return;
+                if (e.target.closest('.btn-icon') || e.target.closest('.btn-kebab') || e.target.closest('.color-swatch') || e.target.closest('.emoji-option')) return;
+                e.preventDefault();
+                touchDragCard = card;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchDragActive = true;
+                touchPlaceholder = createTouchPlaceholder();
+                card.parentNode.insertBefore(touchPlaceholder, card.nextSibling);
+                card.classList.add('dragging');
+                touchLastTarget = null;
+            }
+            
+            function onTouchMove(e) {
+                if (!touchDragActive || !touchDragCard || !touchPlaceholder) return;
+                e.preventDefault();
+                var x = e.touches[0].clientX;
+                var y = e.touches[0].clientY;
+                var dropInfo = getTouchDropTarget(grid, x, y);
+                if (dropInfo && dropInfo.target !== touchDragCard) {
+                    var targetKey = dropInfo.target.id + '_' + dropInfo.side;
+                    if (touchLastTarget !== targetKey) {
+                        if (dropInfo.side === 'left') {
+                            grid.insertBefore(touchPlaceholder, dropInfo.target);
+                        } else {
+                            grid.insertBefore(touchPlaceholder, dropInfo.target.nextSibling);
+                        }
+                        touchLastTarget = targetKey;
+                    }
+                }
+            }
+            
+            function onTouchEnd(e) {
+                if (!touchDragActive || !touchDragCard || !touchPlaceholder) {
+                    touchDragActive = false;
+                    touchDragCard = null;
+                    if (touchPlaceholder) touchPlaceholder.remove();
+                    touchPlaceholder = null;
+                    return;
+                }
+                e.preventDefault();
+                if (touchPlaceholder && touchPlaceholder.parentNode === grid) {
+                    grid.insertBefore(touchDragCard, touchPlaceholder);
+                } else {
+                    grid.appendChild(touchDragCard);
+                }
+                if (touchPlaceholder) touchPlaceholder.remove();
+                touchPlaceholder = null;
+                touchDragCard.classList.remove('dragging');
+                touchDragCard = null;
+                touchDragActive = false;
+                saveCardTitles();
+                showNotification('📦 Порядок таймеров обновлён', 'info');
+            }
+            
+            function onTouchCancel(e) {
+                if (touchPlaceholder) {
+                    touchPlaceholder.remove();
+                    touchPlaceholder = null;
+                }
+                if (touchDragCard) {
+                    touchDragCard.classList.remove('dragging');
+                    touchDragCard = null;
+                }
+                touchDragActive = false;
+            }
+            
+            grid.addEventListener('touchstart', onTouchStart, { passive: false });
+            grid.addEventListener('touchmove', onTouchMove, { passive: false });
+            grid.addEventListener('touchend', onTouchEnd);
+            grid.addEventListener('touchcancel', onTouchCancel);
         }
 
         function deleteTimer(id) {
@@ -861,11 +1009,9 @@
                 if(card) { 
                     var color = card.getAttribute('data-color') || '#ffb300'; 
                     card.style.borderTopColor = color;
-                    // Восстанавливаем эмодзи
                     var iconSpan = card.querySelector('.card-icon');
                     var savedIcon = icons[id] || defaultIcons[id] || '📦';
                     if (iconSpan) iconSpan.textContent = savedIcon;
-                    // Добавляем обработчик клика на эмодзи
                     if (iconSpan && !iconSpan.hasClickListener) {
                         iconSpan.style.cursor = 'pointer';
                         iconSpan.onclick = (function(cardId) {
@@ -903,7 +1049,7 @@
             for(var k in timers) delete timers[k];
             customCounter = 0;
             deletedBuiltIn = [];
-            icons = {}; // сбрасываем эмодзи
+            icons = {};
             localStorage.removeItem('gta5-timers-v37');
             localStorage.removeItem('gta5-card-titles');
             buildFromTemplate();
@@ -934,7 +1080,7 @@
         function renameCard(id) { var card = document.getElementById('card-' + id); if(!card) return; var cur = card.getAttribute('data-title') || card.querySelector('.card-title').textContent; var nw = prompt('Переименовать заголовок:', cur); if(nw && nw.trim()) { var clean = nw.trim(); card.querySelector('.card-title').textContent = clean; card.setAttribute('data-title', clean); saveCardTitles(); } }
         function editSubTitle(id) { var card = document.getElementById('card-' + id); if(!card) return; var subSpan = card.querySelector('.sub-title .sub-text'); var cur = subSpan ? subSpan.textContent : ''; var nw = prompt('Изменить комментарий:', cur); if(nw && nw.trim()) { subSpan.textContent = nw.trim(); saveCardTitles(); } }
         function saveCardTitles() { var titles = {}; document.querySelectorAll('#main-grid .card').forEach(function(c) { var title = c.getAttribute('data-title') || c.querySelector('.card-title').textContent; var descEl = c.querySelector('.sub-title .sub-text'); var desc = descEl ? descEl.textContent : ''; var color = c.getAttribute('data-color') || '#ffb300'; var icon = c.getAttribute('data-icon') || c.querySelector('.card-icon').textContent || '📦'; titles[c.id] = { title: title, desc: desc, color: color, icon: icon }; }); localStorage.setItem('gta5-card-titles', JSON.stringify(titles)); }
-        function loadCardTitles() { try { var titles = JSON.parse(localStorage.getItem('gta5-card-titles') || '{}'); Object.keys(titles).forEach(function(id) { var c = document.getElementById(id); if(c) { c.setAttribute('data-title', titles[id].title); c.setAttribute('data-desc', titles[id].desc); if(titles[id].color) c.setAttribute('data-color', titles[id].color); if(titles[id].icon) { c.setAttribute('data-icon', titles[id].icon); var iconSpan = c.querySelector('.card-icon'); if(iconSpan) iconSpan.textContent = titles[id].icon; icons[id] = titles[id].icon; } if(c.querySelector('.card-title')) c.querySelector('.card-title').textContent = titles[id].title; if(c.querySelector('.sub-title .sub-text')) c.querySelector('.sub-title .sub-text').textContent = titles[id].desc; if(titles[id].color) c.style.borderTopColor = titles[id].color; // Восстанавливаем обработчик клика на эмодзи
+        function loadCardTitles() { try { var titles = JSON.parse(localStorage.getItem('gta5-card-titles') || '{}'); Object.keys(titles).forEach(function(id) { var c = document.getElementById(id); if(c) { c.setAttribute('data-title', titles[id].title); c.setAttribute('data-desc', titles[id].desc); if(titles[id].color) c.setAttribute('data-color', titles[id].color); if(titles[id].icon) { c.setAttribute('data-icon', titles[id].icon); var iconSpan = c.querySelector('.card-icon'); if(iconSpan) iconSpan.textContent = titles[id].icon; icons[id] = titles[id].icon; } if(c.querySelector('.card-title')) c.querySelector('.card-title').textContent = titles[id].title; if(c.querySelector('.sub-title .sub-text')) c.querySelector('.sub-title .sub-text').textContent = titles[id].desc; if(titles[id].color) c.style.borderTopColor = titles[id].color;
                 var iconSpan = c.querySelector('.card-icon');
                 if (iconSpan && !iconSpan.hasClickListener) {
                     iconSpan.style.cursor = 'pointer';
@@ -950,7 +1096,6 @@
         
         function createCustomTimerDOM(id, name) { var c = document.createElement('div'); c.className = 'card custom'; c.id = 'card-' + id; c.setAttribute('draggable', 'true'); c.dataset.title = name; c.dataset.desc = 'Пользовательский'; c.dataset.color = '#2196f3'; c.dataset.icon = '⏱️'; c.style.borderTopColor = '#2196f3'; c.innerHTML = '<div class="card-header"><div class="card-icon">⏱️</div><div class="card-title-wrap"><div class="card-title">' + name + '</div></div><div class="card-actions-wrap"><button class="btn-kebab" onclick="toggleMenu(\'' + id + '\')">⋮</button><div class="dropdown-menu" id="menu-' + id + '"><button onclick="renameCard(\'' + id + '\')">✏️ Изменить название</button><button onclick="editSubTitle(\'' + id + '\')">📝 Изменить комментарий</button><button onclick="editTimer(\'' + id + '\')">⏱ Изменить время</button><div style="padding: 4px 12px 0; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Цвет блока:</div><div class="color-palette" id="palette-' + id + '"></div><button class="delete-opt" onclick="deleteTimer(\'' + id + '\')">🗑️ Удалить таймер</button></div></div></div><div class="timer-block" id="' + id + '"><div class="sub-title"><span class="sub-text">Пользовательский</span></div><div class="timer-display"><div class="timer-value idle" id="' + id + '-time">00:00:00</div><div class="status-badge ready" id="' + id + '-status">Готов</div></div><div class="progress-bar-container"><div class="progress-bar cyan" id="' + id + '-bar"></div></div><div class="btn-group-horizontal"><button class="btn-icon btn-start-icon" onclick="startTimer(\'' + id + '\')">▶</button><button class="btn-icon btn-pause-icon" onclick="pauseTimer(\'' + id + '\')">⏸</button><button class="btn-icon btn-reset-icon" onclick="resetTimer(\'' + id + '\')">↺</button></div></div>'; 
             grid.appendChild(c); 
-            // Добавляем обработчик для эмодзи пользовательского таймера
             var iconSpan = c.querySelector('.card-icon');
             if (iconSpan) {
                 iconSpan.style.cursor = 'pointer';
@@ -967,7 +1112,7 @@
         function handleAddCustom() { var nI = document.getElementById('custom-name'); var mI = document.getElementById('custom-min'); var nm = nI.value.trim() || 'Таймер ' + (customCounter + 1); var mn = parseInt(mI.value); if(!mn || mn <= 0) { showNotification('⚠️ Укажите минуты', 'warning'); return; } customCounter++; var id = 'custom-' + customCounter; var dur = mn * 60; timers[id] = { remaining: dur, total: dur, running: false, intervalId: null, finished: false, label: nm }; createCustomTimerDOM(id, nm); updateDisplay(id); nI.value = ''; mI.value = ''; saveState(); showNotification('✅ Добавлен: ' + nm, 'success'); }
         
         function getFullBackupData() {
-            var b = { version: "0.1.5", appVersion: "0.1.5", date: new Date().toISOString(), timers: {}, customMeta: [], customCounter: customCounter, titles: {}, order: [], deletedBuiltIn: deletedBuiltIn, icons: icons };
+            var b = { version: "0.1.6", appVersion: "0.1.6", date: new Date().toISOString(), timers: {}, customMeta: [], customCounter: customCounter, titles: {}, order: [], deletedBuiltIn: deletedBuiltIn, icons: icons };
             Object.keys(timers).forEach(function(id) {
                 var t = timers[id];
                 b.timers[id] = { remaining: t.remaining, total: t.total, running: t.running, finished: t.finished, label: t.label };
@@ -989,7 +1134,7 @@
                 var b = new Blob([j], { type: 'application/json' });
                 var u = URL.createObjectURL(b);
                 var a = document.createElement('a');
-                var versionForFilename = "0_1_5beta";
+                var versionForFilename = "0_1_6beta";
                 var now = new Date();
                 var day = String(now.getDate()).padStart(2, '0');
                 var month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1019,12 +1164,12 @@
                     var isConverted = false;
                     var data = rawData;
                     
-                    if (compareVersions(fileVersion, "0.1.5") < 0) {
+                    if (compareVersions(fileVersion, "0.1.6") < 0) {
                         data = convertOldConfig(rawData);
                         isConverted = true;
-                        showNotification('⚠️ Файл версии ' + fileVersion + ' сконвертирован в формат 0.1.5', 'warning');
-                    } else if (compareVersions(fileVersion, "0.1.5") > 0) {
-                        if(!confirm('Файл создан более новой версией (' + fileVersion + ')\nТекущая версия: 0.1.5\nВозможна несовместимость. Продолжить загрузку?')) {
+                        showNotification('⚠️ Файл версии ' + fileVersion + ' сконвертирован в формат 0.1.6', 'warning');
+                    } else if (compareVersions(fileVersion, "0.1.6") > 0) {
+                        if(!confirm('Файл создан более новой версией (' + fileVersion + ')\nТекущая версия: 0.1.6\nВозможна несовместимость. Продолжить загрузку?')) {
                             ev.target.value = '';
                             return;
                         }
@@ -1104,7 +1249,6 @@
                                 if(c.querySelector('.card-title')) c.querySelector('.card-title').textContent = data.titles[id].title;
                                 var descEl = c.querySelector('.sub-title .sub-text');
                                 if(descEl) descEl.textContent = data.titles[id].desc;
-                                // Восстанавливаем обработчик для эмодзи
                                 var iconSpan = c.querySelector('.card-icon');
                                 if (iconSpan && !iconSpan.hasClickListener) {
                                     iconSpan.style.cursor = 'pointer';
